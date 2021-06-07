@@ -124,7 +124,7 @@ def connect():
 
     print("Trying to connect to RDS (API v2)...")
     try:
-        conn = pymysql.connect(RDS_HOST,
+        conn = pymysql.connect(host=RDS_HOST,
                                user=RDS_USER,
                                port=RDS_PORT,
                                passwd=RDS_PW,
@@ -718,7 +718,7 @@ class Login(Resource):
             password = data.get('password')
             social_id = data.get('social_id')
             signup_platform = data.get('signup_platform')
-            delivery_date = data['delivery_date']
+            #delivery_date = data['delivery_date']
             query = """
                     # CUSTOMER QUERY 1: LOGIN
                     SELECT driver_uid,
@@ -768,7 +768,7 @@ class Login(Resource):
 
                 # compare passwords if user_social_media is false
                 elif (items['result'][0]['user_social_media'] == 'NULL' or items['result'][0]['user_social_media'] == None) and password is not None:
-
+                    print('comparing passwords')
                     if items['result'][0]['password_hashed'] != password:
                         items['message'] = "Wrong password"
                         items['result'] = ''
@@ -809,6 +809,11 @@ class Login(Resource):
                 del items['result'][0]['password_hashed']
                 del items['result'][0]['email_verified']
 
+                query = """
+                        SELECT driver_uid, driver_first_name, driver_last_name, business_id, driver_available_hours, driver_scheduled_hours, driver_street, driver_city, driver_state, driver_zip, driver_latitude, driver_longitude, driver_phone_num, driver_email, driver_phone_num2, driver_ssn, driver_license, driver_license_exp, driver_insurance_carrier, driver_insurance_num, driver_insurance_exp_date, driver_insurance_picture, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship
+                        FROM jd.drivers;
+                        """
+                '''
                 query = """SELECT temp.driver_uid
                                , temp.driver_first_name
                                , temp.driver_last_name
@@ -869,6 +874,7 @@ class Login(Resource):
                                 start_delivery_date VARCHAR(255) PATH '$.start_delivery_date',
                                 delivery_items JSON PATH '$.items')
                                 ) as tt;"""
+                '''
                 items = execute(query, 'get', conn)
                 items['message'] = "Authenticated successfully."
                 items['code'] = 200

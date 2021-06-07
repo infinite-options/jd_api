@@ -1,3 +1,4 @@
 zappa_settings.json
 __pycache__
 serving_fresh_api-env
+jd_env
