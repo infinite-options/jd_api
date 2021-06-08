@@ -813,7 +813,8 @@ class Login(Resource):
 
                 query = """
                         SELECT driver_uid, driver_first_name, driver_last_name, business_id, driver_available_hours, driver_scheduled_hours, driver_street, driver_city, driver_state, driver_zip, driver_latitude, driver_longitude, driver_phone_num, driver_email, driver_phone_num2, driver_ssn, driver_license, driver_license_exp, driver_insurance_carrier, driver_insurance_num, driver_insurance_exp_date, driver_insurance_picture, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship
-                        FROM jd.drivers;
+                        FROM jd.drivers
+                        WHERE driver_email = \'""" + email + """\' ;
                         """
                 '''
                 query = """SELECT temp.driver_uid
