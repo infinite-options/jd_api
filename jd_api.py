@@ -595,118 +595,120 @@ class AccountSalt(Resource):
 # }
 
 
+'''
+# old login
+class Login(Resource):
+    def post(self):
+        response = {}
+        try:
+            conn = connect()
+            data = request.get_json(force=True)
+            email = data['email']
+            password = data.get('password')
+            refresh_token = data.get('token')
+            signup_platform = data.get('signup_platform')
+            query = """
+                    SELECT driver_uid,
+                        driver_first_name,
+                        driver_last_name,
+                        driver_email,
+                        password_hashed,
+                        email_verified,
+                        user_social_media,
+                        user_access_token,
+                        user_refresh_token
+                    FROM jd.drivers
+                    WHERE driver_email = \'""" + email + """\';
+                    """
+            items = execute(query, 'get', conn)
+            print('Password', password)
+            print(items)
 
-# class Login(Resource):
-#     def post(self):
-#         response = {}
-#         try:
-#             conn = connect()
-#             data = request.get_json(force=True)
-#             email = data['email']
-#             password = data.get('password')
-#             refresh_token = data.get('token')
-#             signup_platform = data.get('signup_platform')
-#             query = """
-#                     SELECT driver_uid,
-#                         driver_first_name,
-#                         driver_last_name,
-#                         driver_email,
-#                         password_hashed,
-#                         email_verified,
-#                         user_social_media,
-#                         user_access_token,
-#                         user_refresh_token
-#                     FROM jd.drivers
-#                     WHERE driver_email = \'""" + email + """\';
-#                     """
-#             items = execute(query, 'get', conn)
-#             print('Password', password)
-#             print(items)
-
-#             if items['code'] != 280:
-#                 response['message'] = "Internal Server Error."
-#                 response['code'] = 500
-#                 return response
-#             elif not items['result']:
-#                 items['message'] = 'Email Not Found. Please signup'
-#                 items['result'] = ''
-#                 items['code'] = 404
-#                 return items
-#             else:
-#                 print(items['result'])
-#                 print('sc: ', items['result'][0]['user_social_media'])
+            if items['code'] != 280:
+                response['message'] = "Internal Server Error."
+                response['code'] = 500
+                return response
+            elif not items['result']:
+                items['message'] = 'Email Not Found. Please signup'
+                items['result'] = ''
+                items['code'] = 404
+                return items
+            else:
+                print(items['result'])
+                print('sc: ', items['result'][0]['user_social_media'])
 
 
-#                 # checks if login was by social media
-#                 if password and items['result'][0]['user_social_media'] != 'NULL' and items['result'][0]['user_social_media'] != None:
-#                     response['message'] = "Need to login by Social Media"
-#                     response['code'] = 401
-#                     return response
+                # checks if login was by social media
+                if password and items['result'][0]['user_social_media'] != 'NULL' and items['result'][0]['user_social_media'] != None:
+                    response['message'] = "Need to login by Social Media"
+                    response['code'] = 401
+                    return response
 
-#                # nothing to check
-#                 elif (password is None and refresh_token is None) or (password is None and items['result'][0]['user_social_media'] == 'NULL'):
-#                     response['message'] = "Enter password else login from social media"
-#                     response['code'] = 405
-#                     return response
+               # nothing to check
+                elif (password is None and refresh_token is None) or (password is None and items['result'][0]['user_social_media'] == 'NULL'):
+                    response['message'] = "Enter password else login from social media"
+                    response['code'] = 405
+                    return response
 
-#                 # compare passwords if user_social_media is false
-#                 elif (items['result'][0]['user_social_media'] == 'NULL' or items['result'][0]['user_social_media'] == None) and password is not None:
+                # compare passwords if user_social_media is false
+                elif (items['result'][0]['user_social_media'] == 'NULL' or items['result'][0]['user_social_media'] == None) and password is not None:
 
-#                     if items['result'][0]['password_hashed'] != password:
-#                         items['message'] = "Wrong password"
-#                         items['result'] = ''
-#                         items['code'] = 406
-#                         return items
+                    if items['result'][0]['password_hashed'] != password:
+                        items['message'] = "Wrong password"
+                        items['result'] = ''
+                        items['code'] = 406
+                        return items
 
-#                     if ((items['result'][0]['email_verified']) == '0') or (items['result'][0]['email_verified'] == "FALSE"):
-#                         response['message'] = "Account need to be verified by email."
-#                         response['code'] = 407
-#                         return response
+                    if ((items['result'][0]['email_verified']) == '0') or (items['result'][0]['email_verified'] == "FALSE"):
+                        response['message'] = "Account need to be verified by email."
+                        response['code'] = 407
+                        return response
 
-#                 # compare the refresh token because it never expire.
-#                 elif (items['result'][0]['user_social_media']) != 'NULL':
-#                     '''
-#                     keep
-#                     if signup_platform != items['result'][0]['user_social_media']:
-#                         items['message'] = "Wrong social media used for signup. Use \'" + items['result'][0]['user_social_media'] + "\'."
-#                         items['result'] = ''
-#                         items['code'] = 401
-#                         return items
-#                     '''
-#                     if (items['result'][0]['user_refresh_token'] != refresh_token):
-#                         print(items['result'][0]['user_refresh_token'])
+                # compare the refresh token because it never expire.
+                elif (items['result'][0]['user_social_media']) != 'NULL':
+                    """
+                    keep
+                    if signup_platform != items['result'][0]['user_social_media']:
+                        items['message'] = "Wrong social media used for signup. Use \'" + items['result'][0]['user_social_media'] + "\'."
+                        items['result'] = ''
+                        items['code'] = 401
+                        return items
+                    """
+                    if (items['result'][0]['user_refresh_token'] != refresh_token):
+                        print(items['result'][0]['user_refresh_token'])
 
-#                         items['message'] = "Cannot Authenticated. Token is invalid"
-#                         items['result'] = ''
-#                         items['code'] = 408
-#                         return items
+                        items['message'] = "Cannot Authenticated. Token is invalid"
+                        items['result'] = ''
+                        items['code'] = 408
+                        return items
 
-#                 else:
-#                     string = " Cannot compare the password or refresh token while log in. "
-#                     print("*" * (len(string) + 10))
-#                     print(string.center(len(string) + 10, "*"))
-#                     print("*" * (len(string) + 10))
-#                     response['message'] = string
-#                     response['code'] = 500
-#                     return response
-#                 del items['result'][0]['password_hashed']
-#                 del items['result'][0]['email_verified']
+                else:
+                    string = " Cannot compare the password or refresh token while log in. "
+                    print("*" * (len(string) + 10))
+                    print(string.center(len(string) + 10, "*"))
+                    print("*" * (len(string) + 10))
+                    response['message'] = string
+                    response['code'] = 500
+                    return response
+                del items['result'][0]['password_hashed']
+                del items['result'][0]['email_verified']
 
-#                 query = """SELECT d.driver_uid
-#                                 , d.driver_first_name
-#                                 , d.driver_last_name
-#                                 , d.business_id
-#                                 , r.route 
-#                             FROM jd.drivers d, jd.routes r WHERE d.driver_uid = r.driver_num AND d.driver_email =  \'""" + email + """\';"""
-#                 items = execute(query, 'get', conn)
-#                 items['message'] = "Authenticated successfully."
-#                 items['code'] = 200
-#                 return items
+                query = """SELECT d.driver_uid
+                                , d.driver_first_name
+                                , d.driver_last_name
+                                , d.business_id
+                                , r.route 
+                            FROM jd.drivers d, jd.routes r WHERE d.driver_uid = r.driver_num AND d.driver_email =  \'""" + email + """\';"""
+                items = execute(query, 'get', conn)
+                items['message'] = "Authenticated successfully."
+                items['code'] = 200
+                return items
 
-#         except:
-#             raise BadRequest('Request failed, please try again later.')
-#         finally:
-#             disconnect(conn)
+        except:
+            raise BadRequest('Request failed, please try again later.')
+        finally:
+            disconnect(conn)
+'''
 
 class Login(Resource):
     def post(self):
@@ -1029,138 +1031,223 @@ class AppleLogin(Resource):
         finally:
             disconnect(conn)
 
-# class GoogleLogin(Resource):
-#     def post(self):
-#         response = {}
-#         items = {}
-#         try:
-#             conn = connect()
-#             token = request.form.get('id_token')
-#             print(token)
-#             if token:
-#                 try: 
-#                     data = id_token.verify_oauth2_token(token, reqs.Request(), '407408718192.apps.googleusercontent.com')
-#                 except ValueError:
-#                     print('Invalid token')
-#                     response['message'] = 'Invalid token'
-#                     response['code'] = 401
-#                     return response, 401
+'''
+class GoogleLogin(Resource):
+    def post(self):
+        response = {}
+        items = {}
+        try:
+            conn = connect()
+            token = request.form.get('id_token')
+            print(token)
+            if token:
+                try: 
+                    data = id_token.verify_oauth2_token(token, reqs.Request(), '407408718192.apps.googleusercontent.com')
+                except ValueError:
+                    print('Invalid token')
+                    response['message'] = 'Invalid token'
+                    response['code'] = 401
+                    return response, 401
 
-#                 print('valid token')
-#                 email = data['email']
-#                 if email is not None:
-#                     sub = data['sub']
-#                     query = """
-#                     SELECT driver_uid,
-#                         driver_first_name,
-#                         driver_last_name,
-#                         driver_email,
-#                         password_hashed,
-#                         email_verified,
-#                         user_social_media,
-#                         user_access_token,
-#                         user_refresh_token
-#                     FROM jd.drivers
-#                     WHERE driver_email = \'""" + email + """\';
-#                     """
-#                     items = execute(query, 'get', conn)
-#                     print(items)
+                print('valid token')
+                email = data['email']
+                if email is not None:
+                    sub = data['sub']
+                    query = """
+                    SELECT driver_uid,
+                        driver_first_name,
+                        driver_last_name,
+                        driver_email,
+                        password_hashed,
+                        email_verified,
+                        user_social_media,
+                        user_access_token,
+                        user_refresh_token
+                    FROM jd.drivers
+                    WHERE driver_email = \'""" + email + """\';
+                    """
+                    items = execute(query, 'get', conn)
+                    print(items)
 
-#                     if items['code'] != 280:
-#                         items['message'] = "Internal error"
-#                         return items
-
-
-#                     # new customer
-#                     if not items['result']:
-#                         items['message'] = "Email doesn't exists Please go to the signup page"
-#                         get_user_id_query = "CALL get_driver_id();"
-#                         NewUserIDresponse = execute(get_user_id_query, 'get', conn)
-
-#                         if NewUserIDresponse['code'] == 490:
-#                             string = " Cannot get new User id. "
-#                             print("*" * (len(string) + 10))
-#                             print(string.center(len(string) + 10, "*"))
-#                             print("*" * (len(string) + 10))
-#                             response['message'] = "Internal Server Error."
-#                             response['code'] = 500
-#                             return response
-
-#                         NewUserID = NewUserIDresponse['result'][0]['new_id']
-#                         user_social_signup = 'GOOGLE'
-#                         print('NewUserID', NewUserID)
+                    if items['code'] != 280:
+                        items['message'] = "Internal error"
+                        return items
 
 
-#                         driver_insert_query = """
-#                                     INSERT INTO jd.drivers
-#                                     (
-#                                         driver_uid,
-#                                         driver_created_at,
-#                                         driver_email,
-#                                         email_verified,
-#                                         user_social_media,
-#                                         user_refresh_token
-#                                     )
-#                                     VALUES
-#                                     (
+                    # new customer
+                    if not items['result']:
+                        items['message'] = "Email doesn't exists Please go to the signup page"
+                        get_user_id_query = "CALL get_driver_id();"
+                        NewUserIDresponse = execute(get_user_id_query, 'get', conn)
+
+                        if NewUserIDresponse['code'] == 490:
+                            string = " Cannot get new User id. "
+                            print("*" * (len(string) + 10))
+                            print(string.center(len(string) + 10, "*"))
+                            print("*" * (len(string) + 10))
+                            response['message'] = "Internal Server Error."
+                            response['code'] = 500
+                            return response
+
+                        NewUserID = NewUserIDresponse['result'][0]['new_id']
+                        user_social_signup = 'GOOGLE'
+                        print('NewUserID', NewUserID)
+
+
+                        driver_insert_query = """
+                                    INSERT INTO jd.drivers
+                                    (
+                                        driver_uid,
+                                        driver_created_at,
+                                        driver_email,
+                                        email_verified,
+                                        user_social_media,
+                                        user_refresh_token
+                                    )
+                                    VALUES
+                                    (
                                     
-#                                         \'""" + NewUserID + """\',
-#                                         \'""" + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + """\',
-#                                         \'""" + email + """\',
-#                                         \'""" + '1' + """\',
-#                                         \'""" + user_social_signup + """\',
-#                                         \'""" + sub + """\'
-#                                     );"""
+                                        \'""" + NewUserID + """\',
+                                        \'""" + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + """\',
+                                        \'""" + email + """\',
+                                        \'""" + '1' + """\',
+                                        \'""" + user_social_signup + """\',
+                                        \'""" + sub + """\'
+                                    );"""
 
-#                         item = execute(driver_insert_query, 'post', conn)
+                        item = execute(driver_insert_query, 'post', conn)
 
-#                         print('INSERT')
+                        print('INSERT')
 
-#                         if item['code'] != 281:
-#                             item['message'] = 'Check insert sql query'
-#                             return item
+                        if item['code'] != 281:
+                            item['message'] = 'Check insert sql query'
+                            return item
 
-#                         return redirect("http://localhost:3000/socialsignup?id=" + NewUserID)
+                        return redirect("http://localhost:3000/socialsignup?id=" + NewUserID)
 
-#                     # Existing customer
+                    # Existing customer
 
-#                     if items['result'][0]['user_refresh_token']:
-#                         print('user_refresh_token')
-#                         print(items['result'][0]['user_social_media'], items['result'][0]['user_refresh_token'])
+                    if items['result'][0]['user_refresh_token']:
+                        print('user_refresh_token')
+                        print(items['result'][0]['user_social_media'], items['result'][0]['user_refresh_token'])
 
-#                         if items['result'][0]['user_social_media'] != "GOOGLE":
-#                             print('Wrong sign up method')
-#                             items['message'] = "Wrong social media used for signup. Use \'" + items['result'][0]['user_social_media'] + "\'."
-#                             items['code'] = 400
-#                             return redirect("http://localhost:3000/?media=" + items['result'][0]['user_social_media'])
+                        if items['result'][0]['user_social_media'] != "GOOGLE":
+                            print('Wrong sign up method')
+                            items['message'] = "Wrong social media used for signup. Use \'" + items['result'][0]['user_social_media'] + "\'."
+                            items['code'] = 400
+                            return redirect("http://localhost:3000/?media=" + items['result'][0]['user_social_media'])
 
-#                         elif items['result'][0]['user_refresh_token'] != sub:
-#                             print('ID mismatch')
-#                             items['message'] = "ID mismatch"
-#                             items['code'] = 400
-#                             return redirect("http://localhost:3000/")
+                        elif items['result'][0]['user_refresh_token'] != sub:
+                            print('ID mismatch')
+                            items['message'] = "ID mismatch"
+                            items['code'] = 400
+                            return redirect("http://localhost:3000/")
 
-#                         else:
-#                             print('Successfully authenticated with google redirecting.......')
-#                             return redirect("http://localhost:3000/users?id=" + items['result'][0]['user_uid'])
+                        else:
+                            print('Successfully authenticated with google redirecting.......')
+                            return redirect("http://localhost:3000/users?id=" + items['result'][0]['user_uid'])
 
-#                 else:
-#                     items['message'] = "Email not returned by GOOGLE LOGIN"
-#                     items['code'] = 400
-#                     return items
+                else:
+                    items['message'] = "Email not returned by GOOGLE LOGIN"
+                    items['code'] = 400
+                    return items
 
 
-#             else:
-#                 response = {
-#                     "message": "Google ID token does not exist",
-#                     "code": 400
-#                 }
-#                 return response
-#         except:
-#             raise BadRequest("Request failed, please try again later.")
-#         finally:
-#             disconnect(conn)
+            else:
+                response = {
+                    "message": "Google ID token does not exist",
+                    "code": 400
+                }
+                return response
+        except:
+            raise BadRequest("Request failed, please try again later.")
+        finally:
+            disconnect(conn)
+'''
 
+# {
+#     "uid":"930-000027",
+#     "delivery_date":"2021-06-06 10:00:00"
+#  }
+class driver_route_day(Resource):
+    def post(self):
+        try:
+            data = request.get_json(force=True)
+            conn = connect()
+            uid = data['uid']
+            delivery_date = data['delivery_date']
+
+            query = """
+                    SELECT temp.driver_uid
+                    , temp.driver_first_name
+                    , temp.driver_last_name
+                    , temp.driver_email
+                    , temp.route_id
+                    , temp.route_option
+                    , temp.route_business_id
+                    , temp.num_deliveries
+                    , temp.route_distance
+                    , temp.route_time
+                    , temp.shipment_date
+                    , tt.delivery_first_name
+                    , tt.delivery_last_name
+                    , tt.delivery_email
+                    , tt.delivery_phone
+                    , tt.delivery_coordinates
+                    , tt.delivery_street
+                    , tt.delivery_city
+                    , tt.delivery_state
+                    , tt.delivery_zip
+                    , tt.delivery_instructions
+                    , tt.delivery_status
+                    , tt.purchase_uid
+                    , tt.customer_uid
+                    , tt.start_delivery_date
+                    , tt.delivery_items
+                    FROM (SELECT rr.route_id,
+                        d.driver_uid,
+                        d.driver_first_name,
+                        d.driver_last_name,
+                        d.driver_email,
+                        rr.route_option,
+                        rr.business_id AS route_business_id,
+                        rr.driver_num AS route_driver_id,
+                        TRIM(BOTH '"' FROM (CAST(JSON_EXTRACT(rr.route,val) AS CHAR))) AS route_delivery_info,
+                        rr.num_deliveries,
+                        rr.distance AS route_distance,
+                        rr.route_time,
+                        rr.shipment_date
+                    FROM 
+                        jd.drivers d, (SELECT * FROM jd.routes WHERE business_id = 'sf' ORDER BY timestamp DESC LIMIT 1) as rr 
+                        JOIN numbers ON JSON_LENGTH(route) >= n WHERE d.driver_uid = \'""" + uid + """\'
+                        AND rr.shipment_date = \'""" + delivery_date + """\' AND  d.driver_uid = rr.driver_num) AS temp,
+                    JSON_TABLE(CONVERT(route_delivery_info, JSON), '$[*]' COLUMNS(
+                    delivery_first_name VARCHAR(255) PATH '$.delivery_first_name',
+                    delivery_last_name VARCHAR(255) PATH '$.delivery_last_name',
+                    delivery_email VARCHAR(255) PATH '$.email',
+                    delivery_phone VARCHAR(255) PATH '$.phone',
+                    delivery_coordinates JSON PATH '$.coordinates',
+                    delivery_street VARCHAR(255) PATH '$.delivery_street',
+                    delivery_city VARCHAR(255) PATH '$.delivery_city',
+                    delivery_state VARCHAR(255) PATH '$.delivery_state',
+                    delivery_zip VARCHAR(255) PATH '$.delivery_zip',
+                    delivery_instructions VARCHAR(255) PATH '$.delivery_instructions',
+                    delivery_status VARCHAR(255) PATH '$.delivery_status',
+                    purchase_uid VARCHAR(255) PATH '$.purchase_uid',
+                    customer_uid VARCHAR(255) PATH '$.customer_uid',
+                    start_delivery_date VARCHAR(255) PATH '$.start_delivery_date',
+                    delivery_items JSON PATH '$.items')
+                    ) as tt;
+                """
+            
+            items = execute(query, 'get',conn)
+            if items['code'] != '280':
+                items['message'] = 'check sql query'
+            return items
+        except:
+             raise BadRequest("Request failed, please try again later.")
+        finally:
+             disconnect(conn)
 # Customer Queries
 class Customers(Resource):
     def get(self):
@@ -1181,7 +1268,6 @@ class Customers(Resource):
         # http://127.0.0.1:4000/api/v2/Customers
         # https://rqiber37a4.execute-api.us-west-1.amazonaws.com/dev/api/v2/Customers
 
-
 # Purchases Queries
 class Purchases(Resource):
     def get(self):
@@ -1201,7 +1287,6 @@ class Purchases(Resource):
             disconnect(conn)
         # http://127.0.0.1:4000/api/v2/Purchases
         # https://rqiber37a4.execute-api.us-west-1.amazonaws.com/dev/api/v2/Purchases
-
 
 # Business Queries
 class Businesses(Resource):
@@ -1264,7 +1349,6 @@ class Businesses(Resource):
         #     "business_uid":"200-000003",
         #     "new_data":{"business_type":"test"}
         # }
-
 
 # Insert new business
 class InsertNewBusiness(Resource):
@@ -1434,7 +1518,6 @@ class InsertNewBusiness(Resource):
         #         "business_password": "pbkdf2:sha256:150000$zMHfn0jt$29cef351d84456b5f6b665bc2bbab8ae3c6e42bd0e4a4e8967041a9455a24798"
         # }
 
-
 # Get Constraints by Business
 class GetBusinessConstraints(Resource):
     def get(self, business_uid):
@@ -1459,7 +1542,6 @@ class GetBusinessConstraints(Resource):
 
         # http://127.0.0.1:4000/api/v2/getBusinessConstraints/<string:business_uid>
         # https://rqiber37a4.execute-api.us-west-1.amazonaws.com/dev/api/v2/getBusinessConstraints/<string:business_uid>
-
 
 # Driver Queries
 class Drivers(Resource):
@@ -1520,8 +1602,6 @@ class Drivers(Resource):
         # https://uqu7qejuee.execute-api.us-west-1.amazonaws.com/api/v2/Drivers
 
 # Update Driver_ID by route
-
-
 class UpdateDriverID(Resource):
     def get(self, driver_id, route_id):
         response = {}
@@ -1545,7 +1625,6 @@ class UpdateDriverID(Resource):
 
         # http://127.0.0.1:4000'/api/v2/updateDriverID/<string:driver_id>/<string:route_id>'
         # https://uqu7qejuee.execute-api.us-west-1.amazonaws.com'/api/v2/updateDriverID/<string:driver_id>/<string:route_id>
-
 
 # Get Customers by Business
 class GetCustomersByBusiness(Resource):
@@ -1574,8 +1653,6 @@ class GetCustomersByBusiness(Resource):
         # https://rqiber37a4.execute-api.us-west-1.amazonaws.com/dev/api/v2/getCustomersByBusiness/<string:business_uid>
 
 # Get Vehicles
-
-
 class GetVehicles(Resource):
     def get(self):
         response = {}
@@ -1596,8 +1673,6 @@ class GetVehicles(Resource):
         # https://rqiber37a4.execute-api.us-west-1.amazonaws.com/dev/api/v2/GetVehicles
 
 # Get Customers that have not ordered from a business
-
-
 class GetCustomersNotOrderFromBusiness(Resource):
     def get(self, business_uid):
         response = {}
@@ -1625,8 +1700,6 @@ class GetCustomersNotOrderFromBusiness(Resource):
         # https://rqiber37a4.execute-api.us-west-1.amazonaws.com/dev/api/v2/getCustomersNotOrderFromBusiness/<string:business_uid>
 
 # Insert new Driver
-
-
 class NewDriver(Resource):
     def post(self):
         response = {}
@@ -1752,7 +1825,6 @@ class NewDriver(Resource):
         #   "bank_account_info":"48597607893"
         # }
         # {"driver_first_name":"a","driver_last_name":"a","business_id":"a","driver_available_hours":"{\"Friday\": [\"09:00:00\", \"23:59:59\"], \"Monday\": [\"09:00:00\", \"23:59:59\"], \"Sunday\": [\"09:00:00\", \"23:59:59\"], \"Tuesday\": [\"09:00:00\", \"23:59:59\"], \"Saturday\": [\"09:00:00\", \"21:00:00\"], \"Thursday\": [\"09:00:00\", \"23:59:59\"], \"Wednesday\": [\"09:00:00\", \"23:00:00\"]}","driver_scheduled_hours":"{\"Friday\": [\"09:00:00\", \"23:59:59\"], \"Monday\": [\"09:00:00\", \"23:59:59\"], \"Sunday\": [\"09:00:00\", \"23:59:59\"], \"Tuesday\": [\"09:00:00\", \"23:59:59\"], \"Saturday\": [\"09:00:00\", \"21:00:00\"], \"Thursday\": [\"09:00:00\", \"23:59:59\"], \"Wednesday\": [\"09:00:00\", \"23:00:00\"]}","driver_street":"a","driver_city":"a","driver_state":"a","driver_zip":"a","driver_phone_num":"a","driver_email":"a","driver_phone_num2":"a","driver_ssn":"a","driver_license":"a","driver_license_exp":"a","driver_insurance_num":"a","driver_password":"a","emergency_contact_name":"a","emergency_contact_phone":"a","emergency_contact_relationship":"a","bank_routing_info":"a","bank_account_info":"a"}
-
 
 # Get Routes
 class GetRoutes(Resource):
@@ -2023,7 +2095,6 @@ class GetCoupons(Resource):
         # http://127.0.0.1:4000/api/v2/getCoupons
         # https://rqiber37a4.execute-api.us-west-1.amazonaws.com/dev/api/v2/getCoupons
 
-
 # Inserts new coupon
 class InsertNewCoupon(Resource):
     def post(self):
@@ -2108,7 +2179,6 @@ class InsertNewCoupon(Resource):
         #     "cup_business_uid": "200-000003"
         # }
 
-
 # Increase coupon usage
 class IncreaseNumCouponUsed(Resource):
     def post(self):
@@ -2142,7 +2212,6 @@ class IncreaseNumCouponUsed(Resource):
         #     "coupon_uid":"600-000002"
         # }
 
-
 class DisableCoupon(Resource):
     def post(self):
         response = {}
@@ -2173,8 +2242,6 @@ class DisableCoupon(Resource):
         # }
 
 # Get refunds
-
-
 class GetRefunds(Resource):
     def get(self):
         response = {}
@@ -2195,7 +2262,6 @@ class GetRefunds(Resource):
 
         # http://127.0.0.1:4000/api/v2/getRefunds
         # https://rqiber37a4.execute-api.us-west-1.amazonaws.com/dev/api/v2/getRefunds
-
 
 # Insert new refund
 class NewRefund(Resource):
@@ -2262,7 +2328,6 @@ class NewRefund(Resource):
         #     "refund_amount": "b",
         #     "ref_coupon_id": "b"
         # }
-
 
 class Payments(Resource):
     def get(self):
@@ -2349,39 +2414,39 @@ class GetAWSLink(Resource):
         finally:
             disconnect(conn)
 
-
-
 # Api Routes
-api.add_resource(GetRoutes, '/api/v2/GetRoutes')
-api.add_resource(Drivers, '/api/v2/Drivers')
-api.add_resource(GetBusinessConstraints,'/api/v2/getBusinessConstraints/<string:business_uid>')
-api.add_resource(Businesses, '/api/v2/Businesses')
-api.add_resource(UpdateDriverID, '/api/v2/updateDriverID/<string:driver_id>/<string:route_id>')
-api.add_resource(GetCustomersByBusiness,'/api/v2/getCustomersByBusiness/<string:business_uid>')
-api.add_resource(GetVehicles, '/api/v2/getVehicles')
-api.add_resource(GetCustomersNotOrderFromBusiness, '/api/v2/getCustomersNotOrderFromBusiness/<string:business_uid>')
-api.add_resource(NewDriver, '/api/v2/insertNewDriver')
-api.add_resource(InsertNewBusiness, '/api/v2/insertNewBusiness')
-api.add_resource(GetCoupons, '/api/v2/getCoupons')
-api.add_resource(InsertNewCoupon, '/api/v2/insertNewCoupon')
-api.add_resource(IncreaseNumCouponUsed, '/api/v2/increaseCouponNum')
-api.add_resource(GetRefunds, '/api/v2/getRefunds')
-api.add_resource(NewRefund, '/api/v2/insertNewRefund')
-api.add_resource(Customers, '/api/v2/Customers')
-api.add_resource(Purchases, '/api/v2/Purchases')
-api.add_resource(DisableCoupon, '/api/v2/disableCoupon')
-api.add_resource(Payments, '/api/v2/Payments')
-api.add_resource(GetRouteInfo, '/api/v2/GetRouteInfo')
-api.add_resource(UpdateDeliveryStatus, '/api/v2/UpdateDeliveryStatus')
-api.add_resource(GetAWSLink, '/api/v2/GetAWSLink')
-
-
-#Driver SignUp and Login Routes
 api.add_resource(SignUp, '/api/v2/SignUp')
 api.add_resource(AccountSalt, '/api/v2/AccountSalt')
 api.add_resource(Login, '/api/v2/Login')
 api.add_resource(AppleLogin, '/api/v2/AppleLogin', '/')
 #api.add_resource(GoogleLogin, '/api/v2/GoogleLogin', '/')
+api.add_resource(driver_route_day, '/api/v2/driver_route_day')
+api.add_resource(Customers, '/api/v2/Customers')
+api.add_resource(Purchases, '/api/v2/Purchases')
+api.add_resource(Businesses, '/api/v2/Businesses')
+api.add_resource(InsertNewBusiness, '/api/v2/insertNewBusiness')
+api.add_resource(GetBusinessConstraints,'/api/v2/getBusinessConstraints/<string:business_uid>')
+api.add_resource(Drivers, '/api/v2/Drivers')
+api.add_resource(UpdateDriverID, '/api/v2/updateDriverID/<string:driver_id>/<string:route_id>')
+api.add_resource(GetCustomersByBusiness,'/api/v2/getCustomersByBusiness/<string:business_uid>')
+api.add_resource(GetVehicles, '/api/v2/getVehicles')
+api.add_resource(GetCustomersNotOrderFromBusiness, '/api/v2/getCustomersNotOrderFromBusiness/<string:business_uid>')
+api.add_resource(NewDriver, '/api/v2/insertNewDriver')
+api.add_resource(GetRoutes, '/api/v2/GetRoutes')
+api.add_resource(GetRouteInfo, '/api/v2/GetRouteInfo')
+api.add_resource(GetCoupons, '/api/v2/getCoupons')
+api.add_resource(InsertNewCoupon, '/api/v2/insertNewCoupon')
+api.add_resource(IncreaseNumCouponUsed, '/api/v2/increaseCouponNum')
+api.add_resource(DisableCoupon, '/api/v2/disableCoupon')
+api.add_resource(GetRefunds, '/api/v2/getRefunds')
+api.add_resource(NewRefund, '/api/v2/insertNewRefund')
+api.add_resource(Payments, '/api/v2/Payments')
+api.add_resource(UpdateDeliveryStatus, '/api/v2/UpdateDeliveryStatus')
+api.add_resource(GetAWSLink, '/api/v2/GetAWSLink')
+
+
+#Driver SignUp and Login Routes
+
 
 
 if __name__ == '__main__':
