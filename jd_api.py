@@ -2356,6 +2356,71 @@ class UpdateDeliveryStatus(Resource):
             data = request.get_json(force=True)
 
             purchase_uid = data['purchase_uid']
+            cmd = data['cmd']
+
+            if cmd == 'Delivered':
+                query_init = """
+                            SELECT purchase_status FROM sf.purchases WHERE purchase_uid = \'""" + purchase_uid + """\'; 
+                            """
+                items_init = execute(query_init,'get',conn)
+                
+                if items_init['code'] != 280:
+                    items_init['message']  ='check sql query'
+                    return items_init
+                
+                status = items_init['result'][0]['purchase_status']
+
+                if status == 'ACTIVE':
+                    query = """
+                            UPDATE sf.purchases 
+                            SET delivery_status = 'TRUE' 
+                            WHERE purchase_uid = \'""" + purchase_uid + """\'; 
+                            """
+                else:
+                    query = """
+                            UPDATE sf.purchases 
+                            SET 
+                            delivery_status = 'TRUE',
+                            purchase_status = 'ACTIVE' 
+                            WHERE purchase_uid = \'""" + purchase_uid + """\'; 
+                            """
+
+            elif cmd == 'Skip':
+                
+                query = """
+                        UPDATE sf.purchases 
+                        SET
+                        delivery_status = 'SKIP'
+                        WHERE purchase_uid = \'""" + purchase_uid + """\'; 
+                        """
+
+            elif cmd == 'Undo':
+                query = """
+                        UPDATE sf.purchases 
+                        SET
+                        delivery_status = 'FALSE'
+                        WHERE purchase_uid = \'""" + purchase_uid + """\'; 
+                        """
+
+            else:
+                return "choose correct option"
+            
+            items = execute(query,'post',conn)
+            return items
+        except:
+            raise BadRequest('Bad request, error while updating delivery status')
+        finally:
+            disconnect(conn)
+
+'''
+class UpdateDeliveryStatus(Resource):
+    def post(self):
+        response = {}
+        try:
+            conn = connect()
+            data = request.get_json(force=True)
+
+            purchase_uid = data['purchase_uid']
             delivery_date = data['delivery_date']
             cmd = data['cmd']
 
@@ -2378,6 +2443,8 @@ class UpdateDeliveryStatus(Resource):
             raise BadRequest('Bad request, error while updating delivery status')
         finally:
             disconnect(conn)
+
+'''
 # {
 #     "purchase_uid":"400-000114",
 #     "delivery_date":"2021-01-31 10:00:00",
