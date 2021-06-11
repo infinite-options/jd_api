@@ -2357,6 +2357,7 @@ class UpdateDeliveryStatus(Resource):
 
             purchase_uid = data['purchase_uid']
             cmd = data['cmd']
+            note = data['note']
 
             if cmd == 'Delivered':
                 query_init = """
@@ -2390,7 +2391,8 @@ class UpdateDeliveryStatus(Resource):
                 query = """
                         UPDATE sf.purchases 
                         SET
-                        delivery_status = 'SKIP'
+                        delivery_status = 'SKIP',
+                        feedback_notes = \'""" + note + """\'
                         WHERE purchase_uid = \'""" + purchase_uid + """\'; 
                         """
 
@@ -2482,6 +2484,50 @@ class GetAWSLink(Resource):
         finally:
             disconnect(conn)
 
+class updateRouteInfo(Resource):
+    
+    def post(self):
+        
+        try:
+
+            conn = connect()
+            data = request.get_json(force=True)
+
+            route_id = data['route_id']
+            purchase_uids = data['purchase_uids']
+
+            query = """
+                    SELECT route FROM jd.routes WHERE route_id = \'""" + route_id + """\';
+                    """
+            items = execute(query,'get',conn)
+
+            if items['code'] != 280:
+                items['message'] = 'check sql query'
+                return items
+            
+            print(purchase_uids,type(purchase_uids))
+            dict_routes = json.loads(items['result'][0]['route'])
+            for key, vals in dict_routes.items():
+                print('INSERT-----------------------')
+                print(key)
+                if vals[0]['purchase_uid'] in purchase_uids:
+                    vals[0]['delivery_status'] = 'TRUE'
+            dict_routes = str(dict_routes)
+            dict_routes = dict_routes.replace("'", '"')
+            query_update = """
+                            UPDATE jd.routes
+                            SET route = \'""" + dict_routes + """\'
+                            WHERE route_id = \'""" + route_id + """\';
+                            """
+            items_update = execute(query_update,'post',conn)
+
+            return items_update
+
+        except:
+            raise BadRequest('Bad request, error while updating delivery status')
+        finally:
+            disconnect(conn)
+
 # Api Routes
 api.add_resource(SignUp, '/api/v2/SignUp')
 api.add_resource(AccountSalt, '/api/v2/AccountSalt')
@@ -2511,7 +2557,7 @@ api.add_resource(NewRefund, '/api/v2/insertNewRefund')
 api.add_resource(Payments, '/api/v2/Payments')
 api.add_resource(UpdateDeliveryStatus, '/api/v2/UpdateDeliveryStatus')
 api.add_resource(GetAWSLink, '/api/v2/GetAWSLink')
-
+api.add_resource(updateRouteInfo, '/api/v2/updateRouteInfo')
 
 #Driver SignUp and Login Routes
 
