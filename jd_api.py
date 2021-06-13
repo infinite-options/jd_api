@@ -1845,7 +1845,7 @@ class GetRoutes(Resource):
 
             #Get business_id for each purchase
             get_orders = """SELECT * FROM """ + db_name +""".payments pa, """ + db_name +""".purchases pu WHERE pa.pay_purchase_uid = 
-                            pu.purchase_uid  AND pu.delivery_status = \'FALSE\' AND CAST(pa.start_delivery_date AS DATETIME) =  \'""" + delivery_start_date + """\' GROUP BY delivery_address;"""
+                            pu.purchase_uid  AND pu.delivery_status = \'FALSE\' AND pu.purchase_status = \'ACTIVE\' AND CAST(pa.start_delivery_date AS DATETIME) =  \'""" + delivery_start_date + """\' GROUP BY delivery_address;"""
             cur.execute(get_orders)
             purchases = cur.fetchall()
             if purchases == ():
