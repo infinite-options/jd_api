@@ -715,11 +715,13 @@ class Login(Resource):
         response = {}
         try:
             conn = connect()
+            print('IN')
             data = request.get_json(force=True)
             email = data['email']
             password = data.get('password')
             social_id = data.get('social_id')
             signup_platform = data.get('signup_platform')
+            
             #delivery_date = data['delivery_date']
             query = """
                     # CUSTOMER QUERY 1: LOGIN
@@ -739,9 +741,6 @@ class Login(Resource):
                     WHERE driver_email = \'""" + email + """\';
                     """
             items = execute(query, 'get', conn)
-            print('Password', password)
-            print(items)
-
             if items['code'] != 280:
                 response['message'] = "Internal Server Error."
                 response['code'] = 500
@@ -1219,7 +1218,7 @@ class driver_route_day(Resource):
                         rr.route_time,
                         rr.shipment_date
                     FROM 
-                        jd.drivers d, (SELECT * FROM jd.routes WHERE business_id = 'sf' ORDER BY timestamp DESC LIMIT 1) as rr 
+                        jd.drivers d, (SELECT * FROM jd.routes WHERE business_id = 'sf' AND driver_num=\'""" + uid + """\' AND shipment_date = \'""" + delivery_date + """\' ORDER BY timestamp DESC LIMIT 1) as rr 
                         JOIN numbers ON JSON_LENGTH(route) >= n WHERE d.driver_uid = \'""" + uid + """\'
                         AND rr.shipment_date = \'""" + delivery_date + """\' AND  d.driver_uid = rr.driver_num) AS temp,
                     JSON_TABLE(CONVERT(route_delivery_info, JSON), '$[*]' COLUMNS(
