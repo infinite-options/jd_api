@@ -63,7 +63,7 @@ app.config['MAIL_USE_SSL'] = True
 # app.config['TESTING'] = False
 
 mail = Mail(app)
-
+s = URLSafeTimedSerializer('thisisaverysecretkey')
 # API
 api = Api(app)
 
@@ -227,19 +227,19 @@ def allowed_file(filename):
 
 def helper_upload_img(file, key):
     bucket = 'just-delivered'
-    if file and allowed_file(file.filename):
-        filename = 'https://s3-us-west-1.amazonaws.com/' \
-                   + str(bucket) + '/' + str(key)
-        print(filename)
-        upload_file = s3.put_object(
-                            Bucket=bucket,
-                            Body=file,
-                            Key=key,
-                            ACL='public-read',
-                            ContentType='image/jpeg'
-                        )
-        return filename
-    return None
+    
+    filename = 'https://s3-us-west-1.amazonaws.com/' \
+                + str(bucket) + '/' + str(key)
+    print(filename)
+    upload_file = s3.put_object(
+                        Bucket=bucket,
+                        Body=file,
+                        Key=key,
+                        ACL='public-read',
+                        ContentType='image/jpeg'
+                    )
+    return filename
+    
 
 # -- Queries start here -------------------------------------------------------------------------------
 class SignUp(Resource):
@@ -248,36 +248,42 @@ class SignUp(Resource):
         items = []
         try:
             conn = connect()
-            data = request.get_json(force=True)
+            #missing driver uid in carlos' input
+            first_name = request.form.get('first_name') if request.form.get('first_name') is not None else 'NULL'
+            last_name = request.form.get('last_name') if request.form.get('last_name') is not None else 'NULL'
+            business_uid = request.form.get('business_uid') if request.form.get('business_uid') is not None else 'NULL'
+            referral_source = request.form.get('referral_source') if request.form.get('referral_source') is not None else 'NULL'
+            driver_hours = request.form.get('driver_hours') if request.form.get('driver_hours') is not None else 'NULL'
+            street = request.form.get('street') if request.form.get('street') is not None else 'NULL'
+            unit = request.form.get('unit') if request.form.get('unit') is not None else 'NULL'
+            city = request.form.get('city') if request.form.get('city') is not None else 'NULL'
+            state = request.form.get('state') if request.form.get('state') is not None else 'NULL'
+            zipcode = request.form.get('zipcode') if request.form.get('zipcode') is not None else 'NULL'
+            longitude = request.form.get('longitude') if request.form.get('longitude') is not None else 'NULL'
+            latitude = request.form.get('latitude') if request.form.get('latitude') is not None else 'NULL'
+            email = request.form.get('email') if request.form.get('email') is not None else 'NULL'
+            phone = request.form.get('phone') if request.form.get('phone') is not None else 'NULL'
+            ssn = request.form.get('ssn') if request.form.get('ssn') is not None else 'NULL'
+            license_num = request.form.get('license_num') if request.form.get('license_num') is not None else 'NULL'
+            license_exp = request.form.get('license_exp') if request.form.get('license_exp') is not None else 'NULL'
+            driver_car_year = request.form.get('driver_car_year') if request.form.get('driver_car_year') is not None else 'NULL'
+            driver_car_model = request.form.get('driver_car_model') if request.form.get('driver_car_model') is not None else 'NULL'
+            driver_car_make = request.form.get('driver_car_make') if request.form.get('driver_car_make') is not None else 'NULL'
+            driver_insurance_carrier = request.form.get('driver_insurance_carrier') if request.form.get('driver_insurance_carrier') is not None else 'NULL'
+            driver_insurance_num = request.form.get('driver_insurance_num') if request.form.get('driver_insurance_num') is not None else 'NULL'
+            driver_insurance_exp_date = request.form.get('driver_insurance_exp_date') if request.form.get('driver_insurance_exp_date') is not None else 'NULL'
+            driver_insurance_picture = request.files.get('driver_insurance_picture') if request.files.get('driver_insurance_picture') is not None else 'NULL'
+            contact_name = request.form.get('contact_name') if request.form.get('contact_name') is not None else 'NULL'
+            contact_phone = request.form.get('contact_phone') if request.form.get('contact_phone') is not None else 'NULL'
+            contact_relation = request.form.get('contact_relation') if request.form.get('contact_relation') is not None else 'NULL'
+            bank_acc_info = request.form.get('bank_acc_info') if request.form.get('bank_acc_info') is not None else 'NULL'
+            bank_routing_info = request.form.get('bank_routing_info') if request.form.get('bank_routing_info') is not None else 'NULL'
+            password = request.form.get('password') if request.form.get('password') is not None else 'NULL'
+            driver_uid = request.form.get('driver_uid') if request.form.get('driver_uid') is not None else 'NULL'
+            social_id = request.form.get('social_id') if request.form.get('social_id') is not None else 'NULL'
 
-            first_name = data['first_name']
-            last_name = data['last_name']
-            business_uid = data['business_uid']
-            driver_hours = data['driver_hours']
-            street = data['street']
-            city = data['city']
-            state = data['state']
-            zipcode = data['zipcode']
-            email = data['email']
-            phone = data['phone']
-            ssn = data['ssn']
-            license_num = data['license_num']
-            license_exp = data['license_exp']
-            insurance = data['insurance']
-            contact_name = data['contact_name']
-            contact_phone = data['contact_phone']
-            contact_relationship = data['contact_relation']
-            bank_acc_info = data['bank_acc_info']
-            bank_routing_info = data['bank_routing_info']
-            password = data['password']
-            driver_uid = data['driver_uid'] if data.get('driver_uid') is not None else 'NULL'
-            social_id = data['social_id'] if data.get('social_id') is not None else 'NULL'
             
-            #print(data)
-            driver_address = street + ' ' + city + ', ' + state + ' ' + zipcode
-            driver_coords = Coordinates([driver_address]).calculateFromLocations()[0]
-            print(driver_coords)
-            if data.get('social') is None or data.get('social') == "FALSE" or data.get('social') == False:
+            if request.form.get('social') is None or request.form.get('social') == "FALSE" or request.form.get('social') == False:
                 social_signup = False
             else:
                 social_signup = True
@@ -295,12 +301,20 @@ class SignUp(Resource):
                 return response, 500
             NewUserID = NewUserIDresponse['result'][0]['new_id']
             
+            # upload image to s3
+            print("initial",driver_insurance_picture)
+            if driver_insurance_picture != 'NULL':
+                key = "driver_insurance/" + str(NewUserID) + "_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+                print(key)
+                driver_insurance_picture = helper_upload_img(driver_insurance_picture, key)
+            print("driver pic",driver_insurance_picture)
+
 
             if social_signup == False:
 
                 salt = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
 
-                password = sha512((data['password'] + salt).encode()).hexdigest()
+                password = sha512((request.form.get('password') + salt).encode()).hexdigest()
                 print('password------', password)
                 algorithm = "SHA512"
                 mobile_access_token = 'NULL'
@@ -310,25 +324,27 @@ class SignUp(Resource):
                 user_social_signup = 'NULL'
             else:
 
-                mobile_access_token = data['mobile_access_token']
-                mobile_refresh_token = data['mobile_refresh_token']
-                user_access_token = data['user_access_token']
-                user_refresh_token = data['user_refresh_token']
+                mobile_access_token = request.form.get('mobile_access_token')
+                mobile_refresh_token = request.form.get('mobile_refresh_token')
+                user_access_token = request.form.get('user_access_token')
+                user_refresh_token = request.form.get('user_refresh_token')
                 salt = 'NULL'   
                 password = 'NULL'
                 algorithm = 'NULL'
-                user_social_signup = data['social']
+                user_social_signup = request.form.get('social')
             
             if driver_uid != 'NULL' and driver_uid:
-
+                print("IN IF")
                 NewUserID = driver_uid 
 
                 query = '''
-                            SELECT user_access_token, user_refresh_token
+                            SELECT user_access_token, user_refresh_token,mobile_access_token,mobile_refresh_token
                             FROM jd.drivers 
-                            WHERE driver_uid = \'''' + driver_id + '''\';
+                            WHERE driver_uid = \'''' + driver_uid + '''\';
                        '''
                 it = execute(query, 'get', conn)
+                if it['result'] == ():
+                    return "driver does not exists"
                 print('query executed')
                 print('it-------', it)
 
@@ -345,33 +361,51 @@ class SignUp(Resource):
                     mobile_refresh_token = it['result'][0]['mobile_refresh_token']
 
 
-                user_insert_query =  ['''
+                driver_insert_query =  '''
                                     UPDATE jd.drivers
                                     SET 
                                     driver_created_at = \'''' + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + '''\',
-                                    driver_first_name = \'''' + firstName + '''\',
-                                    driver_last_name = \'''' + lastName + '''\',
-                                    business_uid = \'''' + business_uid + '''\',
+                                    driver_first_name = \'''' + first_name + '''\',
+                                    driver_last_name = \'''' + last_name + '''\',
+                                    business_id = \'''' + business_uid + '''\',
+                                    referral_source = \'''' + referral_source + '''\',
                                     driver_available_hours = \'''' + driver_hours + '''\',
                                     driver_street = \'''' + street + '''\',
+                                    driver_unit = \'''' + unit + '''\',
                                     driver_city = \'''' + city + '''\',
                                     driver_state = \'''' + state + '''\',
                                     driver_zip = \'''' + zipcode + '''\',
-                                    driver_latitude = \'''' + str(driver_coords['latitude']) + '''\',
-                                    driver_longitude = \'''' + str(driver_coords['longitude']) + '''\',
-                                    driver_phone = \'''' + phone + '''\',
+                                    driver_latitude = \'''' + latitude + '''\',
+                                    driver_longitude = \'''' + longitude + '''\',
+                                    driver_phone_num = \'''' + phone + '''\',
                                     driver_email = \'''' + email + '''\',
                                     driver_ssn = \'''' + ssn + '''\',
                                     driver_license = \'''' + license_num + '''\',
                                     driver_license_exp = \'''' + license_exp + '''\',
-                                    driver_insurance_num = \'''' + insurance + '''\',
+                                    driver_car_year = \'''' + driver_car_year + '''\',
+                                    driver_car_model = \'''' + driver_car_model + '''\',
+                                    driver_car_make = \'''' + driver_car_make + '''\',
+                                    driver_insurance_carrier = \'''' + driver_insurance_carrier + '''\',
+                                    driver_insurance_num = \'''' + driver_insurance_num + '''\',
+                                    driver_insurance_exp_date = \'''' + driver_insurance_exp_date + '''\',
+                                    driver_insurance_picture = \'''' + driver_insurance_picture + '''\',
+                                    emergency_contact_name = \'''' + contact_name + '''\',
+                                    emergency_contact_phone = \'''' + contact_phone + '''\',
+                                    emergency_contact_relationship = \'''' + contact_relation + '''\',
+                                    bank_account_info = \'''' + bank_acc_info + '''\',
+                                    bank_routing_info = \'''' + bank_routing_info + '''\',
                                     password_salt = \'''' + salt + '''\',
                                     password_hashed = \'''' + password + '''\',
                                     password_algorithm = \'''' + algorithm + '''\',
                                     user_social_media = \'''' + user_social_signup + '''\',
-                                    social_timestamp  =  DATE_ADD(now() , INTERVAL 14 DAY)
-                                    WHERE driver_uid = \'''' + driver_id + '''\';
-                                    ''']
+                                    user_access_token = \'''' + user_access_token + '''\',
+                                    social_timestamp = DATE_ADD(now() , INTERVAL 14 DAY),
+                                    user_refresh_token = \'''' + user_refresh_token + '''\',
+                                    mobile_access_token = \'''' + mobile_access_token + '''\',
+                                    mobile_refresh_token = \'''' + mobile_refresh_token + '''\',
+                                    social_id = \'''' + social_id + '''\'
+                                    WHERE driver_uid = \'''' + driver_uid + '''\';
+                                    '''
 
 
             else:
@@ -398,6 +432,7 @@ class SignUp(Resource):
                     return items
 
                 print("inserting to db")
+                print(license_num,license_exp)
                 # write everything to database
                 driver_insert_query = """
                                         INSERT INTO jd.drivers
@@ -407,8 +442,10 @@ class SignUp(Resource):
                                             driver_first_name,
                                             driver_last_name,
                                             business_id,
+                                            referral_source,
                                             driver_available_hours,
                                             driver_street,
+                                            driver_unit,
                                             driver_city,
                                             driver_state,
                                             driver_zip,
@@ -419,7 +456,13 @@ class SignUp(Resource):
                                             driver_ssn,
                                             driver_license,
                                             driver_license_exp,
+                                            driver_car_year,
+                                            driver_car_model,
+                                            driver_car_make,
+                                            driver_insurance_carrier,
                                             driver_insurance_num,
+                                            driver_insurance_exp_date,
+                                            driver_insurance_picture, 
                                             emergency_contact_name,
                                             emergency_contact_phone,
                                             emergency_contact_relationship,
@@ -438,28 +481,35 @@ class SignUp(Resource):
                                         )
                                         VALUES
                                         (
-                                        
                                             \'""" + NewUserID + """\',
-                                            \'""" + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + """\',
+                                            \'""" + str((datetime.now()).strftime("%Y-%m-%d %H:%M:%S")) + """\',
                                             \'""" + first_name + """\',
                                             \'""" + last_name + """\',
                                             \'""" + business_uid + """\',
+                                            \'""" + referral_source + """\',
                                             \'""" + driver_hours + """\',
                                             \'""" + street + """\',
+                                            \'""" + unit + """\',
                                             \'""" + city + """\',
                                             \'""" + state + """\',
                                             \'""" + zipcode + """\',
-                                            \'""" + str(driver_coords['latitude']) + """\',
-                                            \'""" + str(driver_coords['longitude']) + """\',
+                                            \'""" + latitude + """\',
+                                            \'""" + longitude + """\',
                                             \'""" + email + """\',
                                             \'""" + phone + """\',
                                             \'""" + ssn + """\',
                                             \'""" + license_num + """\',
                                             \'""" + license_exp + """\',
-                                            \'""" + insurance + """\',
+                                            \'""" + driver_car_year + """\',
+                                            \'""" + driver_car_model + """\',
+                                            \'""" + driver_car_make + """\',
+                                            \'""" + driver_insurance_carrier + """\',
+                                            \'""" + driver_insurance_num + """\',
+                                            \'""" + driver_insurance_exp_date + """\',
+                                            \'""" + driver_insurance_picture + """\',
                                             \'""" + contact_name + """\',
                                             \'""" + contact_phone + """\',
-                                            \'""" + contact_relationship + """\',
+                                            \'""" + contact_relation + """\',
                                             \'""" + bank_acc_info + """\',
                                             \'""" + bank_routing_info + """\',
                                             \'""" + salt + """\',
@@ -471,8 +521,9 @@ class SignUp(Resource):
                                             \'""" + user_refresh_token + """\',
                                             \'""" + mobile_access_token + """\',
                                             \'""" + mobile_refresh_token + """\',
-                                            \'""" + social_id + """\');"""
-            #print(user_insert_query[0])
+                                            \'""" + social_id + """\');
+                                            """
+            print(driver_insert_query)
 
             items = execute(driver_insert_query, 'post', conn)
             print(items)
@@ -1204,6 +1255,7 @@ class driver_route_day(Resource):
                     , tt.customer_uid
                     , tt.start_delivery_date
                     , tt.delivery_items
+                    , tt.delivery_unit
                     FROM (SELECT rr.route_id,
                         d.driver_uid,
                         d.driver_first_name,
@@ -1218,9 +1270,9 @@ class driver_route_day(Resource):
                         rr.route_time,
                         rr.shipment_date
                     FROM 
-                        jd.drivers d, (SELECT * FROM jd.routes WHERE business_id = 'sf' AND driver_num=\'""" + uid + """\' AND shipment_date = \'""" + delivery_date + """\' ORDER BY timestamp DESC LIMIT 1) as rr 
+                        jd.drivers d, (SELECT * FROM jd.routes WHERE business_id = 'sf' AND driver_num=\'""" + uid + """\' AND shipment_date LIKE \'""" + delivery_date[:10] + '%' + """\' ORDER BY timestamp DESC LIMIT 1) as rr 
                         JOIN numbers ON JSON_LENGTH(route) >= n WHERE d.driver_uid = \'""" + uid + """\'
-                        AND rr.shipment_date = \'""" + delivery_date + """\' AND  d.driver_uid = rr.driver_num) AS temp,
+                        AND rr.shipment_date LIKE \'""" + delivery_date[:10] + '%' + """\' AND  d.driver_uid = rr.driver_num) AS temp,
                     JSON_TABLE(CONVERT(route_delivery_info, JSON), '$[*]' COLUMNS(
                     delivery_first_name VARCHAR(255) PATH '$.delivery_first_name',
                     delivery_last_name VARCHAR(255) PATH '$.delivery_last_name',
@@ -1236,6 +1288,7 @@ class driver_route_day(Resource):
                     purchase_uid VARCHAR(255) PATH '$.purchase_uid',
                     customer_uid VARCHAR(255) PATH '$.customer_uid',
                     start_delivery_date VARCHAR(255) PATH '$.start_delivery_date',
+                    delivery_unit VARCHAR(255) PATH '$.delivery_unit',
                     delivery_items JSON PATH '$.items')
                     ) as tt;
                 """
@@ -1844,14 +1897,40 @@ class GetRoutes(Resource):
 
             #Get business_id for each purchase
             get_orders = """SELECT * FROM """ + db_name +""".payments pa, """ + db_name +""".purchases pu WHERE pa.pay_purchase_uid = 
-                            pu.purchase_uid  AND pu.delivery_status = \'FALSE\' AND pu.purchase_status = \'ACTIVE\' AND CAST(pa.start_delivery_date AS DATETIME) =  \'""" + delivery_start_date + """\' GROUP BY delivery_address;"""
+                            pu.purchase_uid  AND pu.delivery_status = \'FALSE\' AND pu.purchase_status = \'ACTIVE\' AND CAST(pa.start_delivery_date AS DATETIME) LIKE \'""" + delivery_start_date[:10] + '%' + """\' 
+                            # GROUP BY delivery_address,delivery_unit
+                            ;"""
+            
             cur.execute(get_orders)
             purchases = cur.fetchall()
             if purchases == ():
                 response['message'] = 'Deliveries for ' + delivery_start_date + ' have already been delivered or there are no deliveries for this day'
                 response['code'] = 404
                 return response, 500
+            # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&______________________________________")
+            xx = purchases[1]
+            res = {}
+            uids = set()
+            for vals in purchases:
+                varAd = vals['delivery_address'] + vals['delivery_unit'] + vals['delivery_first_name'] + vals['delivery_last_name']
+                if varAd not in uids:
+                    uids.add(varAd)
+                    print("printing",vals['items'])
+                    res[varAd] = vals
 
+                else:
+                    itemsInitDict = {initVal['item_uid']:initVal for initVal in json.loads(res[varAd]['items'])}
+                    itemsCurrDict = {initVal['item_uid']:initVal for initVal in json.loads(vals['items'])}
+                    for key, values in itemsCurrDict.items():
+                        if key in itemsInitDict:
+                            itemsInitDict[key]['qty'] += values['qty']
+                        else:
+                            itemsInitDict[key] = values
+                    print("frag", itemsInitDict)
+                    res[varAd]['items'] = [its for  key,its in itemsInitDict.items()]
+                    
+            purchases = [its for  key,its in res.items()]
+            # print(purchases[1])
             #Add customers and addresses for each business
             addresses = []
             first = []
@@ -1867,13 +1946,18 @@ class GetRoutes(Resource):
             purchase_uid = []
             customer_uid = []
             start_delivery_date = []
+            state = []
+            unit = []
+            # print(purchases)
             for purchase in purchases:
-                address = purchase['delivery_address'] + ', ' + purchase['delivery_unit'] + ' ' + purchase['delivery_city'] + ', ' + purchase['delivery_state'] + ', ' + purchase['delivery_zip']
+                address = purchase['delivery_address'] + ', ' + purchase['delivery_unit'] + ', ' + purchase['delivery_city'] + ', ' + purchase['delivery_state'] + ', ' + purchase['delivery_zip']
                 first.append(purchase['delivery_first_name'])
                 last.append(purchase['delivery_last_name'])
                 addresses.append(address)
                 street.append(purchase['delivery_address'])
+                unit.append(purchase['delivery_unit'])
                 city.append(purchase['delivery_city'])
+                state.append(purchase['delivery_state'])
                 zipcode.append(purchase['delivery_zip'])
                 delivery_instructions.append(purchase['delivery_instructions'])
                 email.append(purchase['delivery_email'])
@@ -1884,15 +1968,16 @@ class GetRoutes(Resource):
                 customer_uid.append(purchase['pur_customer_uid'])
                 start_delivery_date.append(purchase['start_delivery_date'])
 
+            
             business_name = db_name
             business_start_address = farm_address + ' ' + farm_city + ', ' + farm_state + ' ' + farm_zip
             business_start_coordinates = Coordinates([business_start_address]).calculateFromLocations()[0]
             coordinates = Coordinates(addresses).calculateFromLocations()
 
-            areas = {business_start_address:[business_start_coordinates, business_name, '', '', '', '', farm_address, farm_city, farm_state, farm_zip, '', '', '','', '']}
+            areas = {business_start_address:[business_start_coordinates, business_name, '', '', '', '', farm_address, farm_city, farm_state, farm_zip, '', '', '','', '','']}
             for i in range(len(coordinates)):
                 areas[addresses[i]] = [coordinates[i], first[i], last[i], delivery_instructions[i], 
-                    email[i], phone[i], street[i], city[i], 'CA', zipcode[i], items[i], delivery_status[i], purchase_uid[i], customer_uid[i], start_delivery_date[i]]
+                    email[i], phone[i], street[i], city[i], state[i], zipcode[i], items[i], delivery_status[i], purchase_uid[i], customer_uid[i], start_delivery_date[i],unit[i]]
 
             coords_dict = {'latitude':[], 'longitude':[]}
             for i in coordinates:
@@ -1948,7 +2033,9 @@ class GetRoutes(Resource):
                             pur_uid = ''
                             cust_uid = ''
                             start = ''
+                            unit = ''
                             for i in areas:
+                                #print('printing areas',areas[i])
                                 if (coords[loc]['latitude'],coords[loc]['longitude']) == (areas[i][0]['latitude'],areas[i][0]['longitude']):
                                     street = i
                                     customer_coords = areas[i][0]
@@ -1966,9 +2053,10 @@ class GetRoutes(Resource):
                                     pur_uid = areas[i][12]
                                     cust_uid = areas[i][13]
                                     start = areas[i][14]
+                                    unit = areas[i][15]
                             print(count, "   ", street, "    ")
                             #print(cust_items)
-                            route_dict[count] = [{'coordinates':customer_coords, 'delivery_street':cust_street, 'delivery_city':cust_city, 'delivery_state':cust_state, 
+                            route_dict[count] = [{'coordinates':customer_coords, 'delivery_street':cust_street, 'delivery_unit':unit,'delivery_city':cust_city, 'delivery_state':cust_state, 
                                                 'delivery_zip':cust_zip,'delivery_first_name':customer_first, 'delivery_last_name':customer_last,
                                                 'delivery_instructions':deli_instruc, 'email':cust_email, 'phone':cust_phone, 
                                                 'items':cust_items, 'delivery_status':deli_status, 'purchase_uid':pur_uid, 'customer_uid':cust_uid, 'start_delivery_date':str(start)}]
@@ -1976,7 +2064,7 @@ class GetRoutes(Resource):
                             #print(route_dict[count])
                             count += 1
 
-                    #print(route_dict)
+                    
                     route_dict.popitem()
                     loaded_route = json.dumps(route_dict)
 
@@ -1986,6 +2074,8 @@ class GetRoutes(Resource):
                     new_route_id = old_route_id[0]['new_id']
                 
                     #Insert info for route into database
+                    #change driver_num in future but right now default to prashant's uid
+                    driver_num = '930-000001'
                     val = (new_route_id, business_name, option, driver_num, loaded_route, route_distance, num_deliveries, route_time, delivery_start_date, datetime.now())
                     query = 'INSERT INTO jd.routes (route_id, business_id, route_option, driver_num, route, distance, num_deliveries, route_time, shipment_date, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
                     #print(query)
@@ -2527,6 +2617,82 @@ class updateRouteInfo(Resource):
         finally:
             disconnect(conn)
 
+class updateDriverSchedule(Resource):
+    def post(self):
+        try:
+            conn = connect()
+            data = request.get_json(force=True)
+
+            schedule = "'" + str(data['driver_hours']).replace("'", "\"") + "'"
+
+            query = """
+                    UPDATE jd.drivers 
+                    SET 
+                    driver_available_hours =  """ + schedule + """;
+                    """
+            return execute(query,'post',conn)
+
+
+        except:
+            raise BadRequest('Bad request, error while updating delivery schedule')
+        finally:
+            disconnect(conn)
+
+class drivers_sort_report(Resource):
+
+    def get(self, date):
+
+        try:
+            conn = connect()
+            query = """
+                    SELECT obf.*, pay.start_delivery_date, pay.payment_uid, itm.business_price, itm.item_unit, itm.item_name, bus.business_name
+                    FROM sf.orders_by_farm AS obf, sf.payments AS pay, (SELECT * FROM sf.sf_items LEFT JOIN sf.supply ON item_uid = sup_item_uid) AS itm, sf.businesses as bus
+                    WHERE obf.purchase_uid = pay.pay_purchase_uid AND obf.item_uid = itm.item_uid AND obf.itm_business_uid = itm.itm_business_uid AND start_delivery_date LIKE \'""" + date + '%' + """\' AND bus.business_uid = obf.itm_business_uid AND delivery_status = 'FALSE'; 
+                    """
+            items = execute(query, 'get', conn)
+
+            if items['code'] != 280:
+                items['message'] = 'check sql query'
+                return items
+            
+            item_dict = {}
+            for vals in items['result']:
+                if vals['item_name'] in item_dict:
+                    item_dict[vals['item_name']]['customers'].append({'customer_first_name':vals['delivery_first_name'],
+                                'customer_last_name':vals['delivery_last_name'],'customer_uid':vals['pur_customer_uid'],
+                                'customer_address':vals['delivery_address'],'customer_unit':vals['delivery_unit'],'qty':vals['qty']})
+                    item_dict[vals['item_name']]['qty'] += int(vals['qty'])
+                else:
+                    item_dict[vals['item_name']]  ={}
+                    item_dict[vals['item_name']]['customers'] = [{'customer_first_name':vals['delivery_first_name'],
+                                'customer_last_name':vals['delivery_last_name'],'customer_uid':vals['pur_customer_uid'],
+                                'customer_address':vals['delivery_address'],'customer_unit':vals['delivery_unit'],'qty':vals['qty']}]
+                    item_dict[vals['item_name']]['qty'] = int(vals['qty']) 
+                    item_dict[vals['item_name']]['business_name'] = vals['business_name']
+                    item_dict[vals['item_name']]['business_uid'] = vals['itm_business_uid']  
+                    item_dict[vals['item_name']]['item'] = vals['name']
+                    item_dict[vals['item_name']]['item_uid'] = vals['item_uid']
+                    item_dict[vals['item_name']]['item_img'] = vals['img']
+                    item_dict[vals['item_name']]['item_unit'] = vals['item_unit']
+                    item_dict[vals['item_name']]['item_business_price'] = vals['business_price']
+            
+            items['result'] = [vals for key, vals in sorted(item_dict.items())]
+            return items
+
+        
+        except:
+            raise BadRequest('Bad request, error while updating delivery schedule')
+        finally:
+            disconnect(conn)
+
+
+
+            
+
+
+
+
+
 # Api Routes
 api.add_resource(SignUp, '/api/v2/SignUp')
 api.add_resource(AccountSalt, '/api/v2/AccountSalt')
@@ -2557,6 +2723,8 @@ api.add_resource(Payments, '/api/v2/Payments')
 api.add_resource(UpdateDeliveryStatus, '/api/v2/UpdateDeliveryStatus')
 api.add_resource(GetAWSLink, '/api/v2/GetAWSLink')
 api.add_resource(updateRouteInfo, '/api/v2/updateRouteInfo')
+api.add_resource(updateDriverSchedule, '/api/v2/updateDriverSchedule')
+api.add_resource(drivers_sort_report, '/api/v2/drivers_sort_report/<string:date>')
 
 #Driver SignUp and Login Routes
 
