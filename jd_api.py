@@ -283,7 +283,7 @@ class SignUp(Resource):
             social_id = request.form.get('social_id') if request.form.get('social_id') is not None else 'NULL'
 
             
-            if request.form.get('social') is None or request.form.get('social') == "FALSE" or request.form.get('social') == False:
+            if request.form.get('social') is None or request.form.get('social') == "FALSE" or request.form.get('social') == False or request.form.get('social') == "NULL":
                 social_signup = False
             else:
                 social_signup = True
@@ -1896,29 +1896,32 @@ class GetRoutes(Resource):
             db_name = data['db']
 
             #Get business_id for each purchase
-            get_orders = """SELECT * FROM """ + db_name +""".payments pa, """ + db_name +""".purchases pu WHERE pa.pay_purchase_uid = 
-                            pu.purchase_uid  AND pu.delivery_status = \'FALSE\' AND pu.purchase_status = \'ACTIVE\' AND CAST(pa.start_delivery_date AS DATETIME) LIKE \'""" + delivery_start_date[:10] + '%' + """\' 
-                            # GROUP BY delivery_address,delivery_unit
-                            ;"""
-            
+            get_orders = """SELECT * FROM """ + db_name +""".payments pa, """ + db_name +""".purchases pu 
+                            WHERE pa.pay_purchase_uid = pu.purchase_uid  
+                            AND pu.delivery_status = \'FALSE\' 
+                            AND pu.purchase_status = \'ACTIVE\' 
+                            AND CAST(pa.start_delivery_date AS DATETIME) LIKE \'""" + delivery_start_date[:10] + '%' + """\';"""
+            print(get_orders)
             cur.execute(get_orders)
             purchases = cur.fetchall()
             if purchases == ():
                 response['message'] = 'Deliveries for ' + delivery_start_date + ' have already been delivered or there are no deliveries for this day'
                 response['code'] = 404
                 return response, 500
-            # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&______________________________________")
-            xx = purchases[1]
             res = {}
             uids = set()
             for vals in purchases:
                 varAd = vals['delivery_address'] + vals['delivery_unit'] + vals['delivery_first_name'] + vals['delivery_last_name']
+                print(varAd)
                 if varAd not in uids:
+                    print("in if")
                     uids.add(varAd)
+                    print("printing",type(vals['items']))
                     print("printing",vals['items'])
                     res[varAd] = vals
 
                 else:
+                    print("in else")
                     itemsInitDict = {initVal['item_uid']:initVal for initVal in json.loads(res[varAd]['items'])}
                     itemsCurrDict = {initVal['item_uid']:initVal for initVal in json.loads(vals['items'])}
                     for key, values in itemsCurrDict.items():
@@ -1926,11 +1929,12 @@ class GetRoutes(Resource):
                             itemsInitDict[key]['qty'] += values['qty']
                         else:
                             itemsInitDict[key] = values
-                    print("frag", itemsInitDict)
-                    res[varAd]['items'] = [its for  key,its in itemsInitDict.items()]
-                    
+                    #print("frag", itemsInitDict)
+                    res[varAd]['items'] = str([its for  key,its in itemsInitDict.items()]).replace("'",'"')
+                    print("in else", type(res[varAd]['items']))
+                    #print(res[varAd]['items'])
+
             purchases = [its for  key,its in res.items()]
-            # print(purchases[1])
             #Add customers and addresses for each business
             addresses = []
             first = []
@@ -1962,6 +1966,7 @@ class GetRoutes(Resource):
                 delivery_instructions.append(purchase['delivery_instructions'])
                 email.append(purchase['delivery_email'])
                 phone.append(purchase['delivery_phone_num'])
+                print(purchase['items'])
                 items.append(json.loads(purchase['items']))
                 delivery_status.append(purchase['delivery_status'])
                 purchase_uid.append(purchase['purchase_uid'])
@@ -2075,12 +2080,13 @@ class GetRoutes(Resource):
                 
                     #Insert info for route into database
                     #change driver_num in future but right now default to prashant's uid
-                    driver_num = '930-000001'
-                    val = (new_route_id, business_name, option, driver_num, loaded_route, route_distance, num_deliveries, route_time, delivery_start_date, datetime.now())
+                    driver_num_temp = '930-000001'
+                    val = (new_route_id, business_name, option, driver_num_temp, loaded_route, route_distance, num_deliveries, route_time, delivery_start_date, datetime.now())
                     query = 'INSERT INTO jd.routes (route_id, business_id, route_option, driver_num, route, distance, num_deliveries, route_time, shipment_date, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
                     #print(query)
                     cur.execute(query, val)
                     conn.commit()
+                    
                     driver_num += 1
 
                 drivers += 1
@@ -2628,7 +2634,8 @@ class updateDriverSchedule(Resource):
             query = """
                     UPDATE jd.drivers 
                     SET 
-                    driver_available_hours =  """ + schedule + """;
+                    driver_available_hours =  """ + schedule + """
+                    WHERE driver_uid = '""" + data['uid'] + """\';
                     """
             return execute(query,'post',conn)
 
@@ -2640,10 +2647,30 @@ class updateDriverSchedule(Resource):
 
 class drivers_sort_report(Resource):
 
-    def get(self, date):
+    def get(self, date, driver_num):
 
         try:
             conn = connect()
+
+            query_cust = """   
+                        SELECT * from jd.routes WHERE driver_num =  \'""" + driver_num + """\' AND shipment_date LIKE \'""" + date + '%' + """\'
+                        ORDER BY route_id DESC LIMIT 1;
+                        """
+
+            items_cust = execute(query_cust,'get',conn)
+
+            route = json.loads(items_cust['result'][0]['route'])
+            
+
+            customers_list = []
+
+            for key,val in route.items():
+                # print("in",vals,type(vals))
+                vals = val[0]
+                if key != "1":
+                    customers_list.append(vals['delivery_first_name']+vals['delivery_last_name']+vals['delivery_street']+vals['delivery_unit']) 
+            # return items_cust
+
             query = """
                     SELECT obf.*, pay.start_delivery_date, pay.payment_uid, itm.business_price, itm.item_unit, itm.item_name, bus.business_name
                     FROM sf.orders_by_farm AS obf, sf.payments AS pay, (SELECT * FROM sf.sf_items LEFT JOIN sf.supply ON item_uid = sup_item_uid) AS itm, sf.businesses as bus
@@ -2657,24 +2684,34 @@ class drivers_sort_report(Resource):
             
             item_dict = {}
             for vals in items['result']:
-                if vals['item_name'] in item_dict:
-                    item_dict[vals['item_name']]['customers'].append({'customer_first_name':vals['delivery_first_name'],
-                                'customer_last_name':vals['delivery_last_name'],'customer_uid':vals['pur_customer_uid'],
-                                'customer_address':vals['delivery_address'],'customer_unit':vals['delivery_unit'],'qty':vals['qty']})
-                    item_dict[vals['item_name']]['qty'] += int(vals['qty'])
-                else:
-                    item_dict[vals['item_name']]  ={}
-                    item_dict[vals['item_name']]['customers'] = [{'customer_first_name':vals['delivery_first_name'],
-                                'customer_last_name':vals['delivery_last_name'],'customer_uid':vals['pur_customer_uid'],
-                                'customer_address':vals['delivery_address'],'customer_unit':vals['delivery_unit'],'qty':vals['qty']}]
-                    item_dict[vals['item_name']]['qty'] = int(vals['qty']) 
-                    item_dict[vals['item_name']]['business_name'] = vals['business_name']
-                    item_dict[vals['item_name']]['business_uid'] = vals['itm_business_uid']  
-                    item_dict[vals['item_name']]['item'] = vals['name']
-                    item_dict[vals['item_name']]['item_uid'] = vals['item_uid']
-                    item_dict[vals['item_name']]['item_img'] = vals['img']
-                    item_dict[vals['item_name']]['item_unit'] = vals['item_unit']
-                    item_dict[vals['item_name']]['item_business_price'] = vals['business_price']
+                if vals['delivery_first_name']+vals['delivery_last_name']+vals['delivery_address']+vals['delivery_unit'] in customers_list:
+                    if vals['item_name'] in item_dict:
+                        flag = 0
+                        # loop through all customers
+                        for i,custs in enumerate(item_dict[vals['item_name']]['customers']):
+                            if custs['customer_first_name']+custs['customer_last_name']+custs['customer_address']+custs['customer_unit'] in vals['delivery_first_name']+vals['delivery_last_name']+vals['delivery_address']+vals['delivery_unit']:
+                                item_dict[vals['item_name']]['customers'][i]['qty'] = int(item_dict[vals['item_name']]['customers'][i]['qty']) + int(vals['qty'])
+                                flag = 1
+                        if flag == 0:    
+                            item_dict[vals['item_name']]['customers'].append({'customer_first_name':vals['delivery_first_name'],
+                                        'customer_last_name':vals['delivery_last_name'],'customer_uid':vals['pur_customer_uid'],
+                                        'customer_address':vals['delivery_address'],'customer_unit':vals['delivery_unit'],'qty':vals['qty']})
+                        item_dict[vals['item_name']]['qty'] = int(item_dict[vals['item_name']]['qty']) + int(vals['qty'])
+                        flag = 0
+                    
+                    else:
+                        item_dict[vals['item_name']]  ={}
+                        item_dict[vals['item_name']]['customers'] = [{'customer_first_name':vals['delivery_first_name'],
+                                    'customer_last_name':vals['delivery_last_name'],'customer_uid':vals['pur_customer_uid'],
+                                    'customer_address':vals['delivery_address'],'customer_unit':vals['delivery_unit'],'qty':vals['qty']}]
+                        item_dict[vals['item_name']]['qty'] = int(vals['qty']) 
+                        item_dict[vals['item_name']]['business_name'] = vals['business_name']
+                        item_dict[vals['item_name']]['business_uid'] = vals['itm_business_uid']  
+                        item_dict[vals['item_name']]['item'] = vals['name']
+                        item_dict[vals['item_name']]['item_uid'] = vals['item_uid']
+                        item_dict[vals['item_name']]['item_img'] = vals['img']
+                        item_dict[vals['item_name']]['item_unit'] = vals['item_unit']
+                        item_dict[vals['item_name']]['item_business_price'] = vals['business_price']
             
             items['result'] = [vals for key, vals in sorted(item_dict.items())]
             return items
@@ -2685,14 +2722,67 @@ class drivers_sort_report(Resource):
         finally:
             disconnect(conn)
 
+class updateRouteOrder(Resource):
+    def post(self):
+        try:
+            conn = connect()
+            data = request.get_json(force=True)
+            print(data)
+            route = "'" + str(data['route']).replace("'", "\"") + "'"
+            query = """
+                    UPDATE jd.routes
+                    SET 
+                    route =  """ + route + """
+                    WHERE route_id = \'""" + data['route_id'] + """\';
+                    """
+            print(query)
+            return execute(query,'post',conn)
+
+
+        except:
+            raise BadRequest('Bad request, error while updating route order')
+        finally:
+            disconnect(conn)
+
+class sortedProduce(Resource):
+    def post(self):
+        try:
+            conn = connect()
+            data = request.get_json(force=True)
+            action = data['action']
+            route_id = data['route_id']
+
+            if action == 'get':
+            
+                query = """
+                        SELECT sorted_produce FROM jd.routes
+                        WHERE route_id = \'""" + route_id + """\';
+                        """
+                print(query)
+                return execute(query,'get',conn)
+            
+            elif action == 'post':
+                produce = data['sorted_produce']
+                produce = "'" + str(produce).replace("'", "\"") + "'"
+                query = """
+                        UPDATE jd.routes
+                        SET sorted_produce = """ + produce + """
+                        WHERE route_id = \'""" + route_id + """\';
+                        """
+                print(query)
+                return execute(query,'post',conn)
+            else:
+                return 'choose correct option'
+
+
+
+        except:
+            raise BadRequest('Bad request, error while updating delivery schedule')
+        finally:
+            disconnect(conn)
 
 
             
-
-
-
-
-
 # Api Routes
 api.add_resource(SignUp, '/api/v2/SignUp')
 api.add_resource(AccountSalt, '/api/v2/AccountSalt')
@@ -2724,11 +2814,13 @@ api.add_resource(UpdateDeliveryStatus, '/api/v2/UpdateDeliveryStatus')
 api.add_resource(GetAWSLink, '/api/v2/GetAWSLink')
 api.add_resource(updateRouteInfo, '/api/v2/updateRouteInfo')
 api.add_resource(updateDriverSchedule, '/api/v2/updateDriverSchedule')
-api.add_resource(drivers_sort_report, '/api/v2/drivers_sort_report/<string:date>')
+api.add_resource(drivers_sort_report, '/api/v2/drivers_sort_report/<string:date>,<string:driver_num>')
+api.add_resource(updateRouteOrder, '/api/v2/updateRouteOrder')
+api.add_resource(sortedProduce, '/api/v2/sortedProduce')
 
 #Driver SignUp and Login Routes
 
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=4000)
+    app.run(host='127.0.0.1', port=4005)
