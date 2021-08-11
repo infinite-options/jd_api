@@ -1902,12 +1902,15 @@ class GetRoutes(Resource):
                             AND pu.purchase_status = \'ACTIVE\' 
                             AND CAST(pa.start_delivery_date AS DATETIME) LIKE \'""" + delivery_start_date[:10] + '%' + """\';"""
             print(get_orders)
+            
             cur.execute(get_orders)
             purchases = cur.fetchall()
             if purchases == ():
                 response['message'] = 'Deliveries for ' + delivery_start_date + ' have already been delivered or there are no deliveries for this day'
                 response['code'] = 404
                 return response, 500
+            
+           
             res = {}
             uids = set()
             for vals in purchases:
@@ -1916,9 +1919,10 @@ class GetRoutes(Resource):
                 if varAd not in uids:
                     print("in if")
                     uids.add(varAd)
-                    print("printing",type(vals['items']))
-                    print("printing",vals['items'])
+                    # print("printing",type(vals['items']))
+                    # print("printing",vals['items'])
                     res[varAd] = vals
+                    print(res[varAd]['purchase_uid'])
 
                 else:
                     print("in else")
@@ -1931,9 +1935,11 @@ class GetRoutes(Resource):
                             itemsInitDict[key] = values
                     #print("frag", itemsInitDict)
                     res[varAd]['items'] = str([its for  key,its in itemsInitDict.items()]).replace("'",'"')
+                    print(vals['purchase_uid'])
+                    res[varAd]['purchase_uid'] = res[varAd]['purchase_uid'] + "," + vals['purchase_uid']
                     print("in else", type(res[varAd]['items']))
                     #print(res[varAd]['items'])
-
+            
             purchases = [its for  key,its in res.items()]
             #Add customers and addresses for each business
             addresses = []
@@ -2674,7 +2680,7 @@ class drivers_sort_report(Resource):
             query = """
                     SELECT obf.*, pay.start_delivery_date, pay.payment_uid, itm.business_price, itm.item_unit, itm.item_name, bus.business_name
                     FROM sf.orders_by_farm AS obf, sf.payments AS pay, (SELECT * FROM sf.sf_items LEFT JOIN sf.supply ON item_uid = sup_item_uid) AS itm, sf.businesses as bus
-                    WHERE obf.purchase_uid = pay.pay_purchase_uid AND obf.item_uid = itm.item_uid AND obf.itm_business_uid = itm.itm_business_uid AND start_delivery_date LIKE \'""" + date + '%' + """\' AND bus.business_uid = obf.itm_business_uid AND delivery_status = 'FALSE'; 
+                    WHERE obf.purchase_uid = pay.pay_purchase_uid AND obf.item_uid = itm.item_uid AND obf.itm_business_uid = itm.itm_business_uid AND start_delivery_date LIKE \'""" + date + '%' + """\' AND bus.business_uid = obf.itm_business_uid; 
                     """
             items = execute(query, 'get', conn)
 
