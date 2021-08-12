@@ -2087,8 +2087,8 @@ class GetRoutes(Resource):
                     #Insert info for route into database
                     #change driver_num in future but right now default to prashant's uid
                     driver_num_temp = '930-000001'
-                    val = (new_route_id, business_name, option, driver_num_temp, loaded_route, route_distance, num_deliveries, route_time, delivery_start_date, datetime.now())
-                    query = 'INSERT INTO jd.routes (route_id, business_id, route_option, driver_num, route, distance, num_deliveries, route_time, shipment_date, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                    val = (new_route_id, business_name, option, driver_num_temp, loaded_route, route_distance, num_deliveries, route_time, delivery_start_date, datetime.now(), '[]')
+                    query = 'INSERT INTO jd.routes (route_id, business_id, route_option, driver_num, route, distance, num_deliveries, route_time, shipment_date, timestamp, route_directions) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s)'
                     #print(query)
                     cur.execute(query, val)
                     conn.commit()
@@ -2780,13 +2780,63 @@ class sortedProduce(Resource):
             else:
                 return 'choose correct option'
 
-
-
         except:
             raise BadRequest('Bad request, error while updating delivery schedule')
         finally:
             disconnect(conn)
 
+class driverDirections(Resource):
+    def post(self):
+        try:
+            conn = connect()
+            data = request.get_json(force=True)
+            action = data['action']
+            
+            route_id = data['route_id']
+            
+            if action == 'get':
+                
+                query = """
+                        SELECT route_directions FROM jd.routes
+                        WHERE route_id = \'""" + route_id + """\';
+                        """
+                print(query)
+                return execute(query,'get',conn)
+            
+            elif action == 'post':
+                directions = data['directions']
+                query = """
+                        SELECT route_directions FROM jd.routes
+                        WHERE route_id = \'""" + route_id + """\';
+                        """
+                items = execute(query,'get',conn)
+                print(items)
+
+                initDirections = items['result'][0]['route_directions']
+                print(initDirections,type(initDirections))
+
+                initDirections = json.loads(initDirections)
+                print(initDirections,type(initDirections))
+                
+                initDirections.extend(directions)
+                print(initDirections)
+                initDirections = "'" + str(initDirections).replace("'", "\"") + "'"
+                print(initDirections)
+
+                query = """
+                        UPDATE jd.routes
+                        SET route_directions = """ + initDirections + """
+                        WHERE route_id = \'""" + route_id + """\';
+                        """
+                print(query)
+                return execute(query,'post',conn)
+            else:
+                return 'choose correct option'
+
+        except:
+            raise BadRequest('Bad request, error while updating delivery schedule')
+        finally:
+            disconnect(conn)
 
             
 # Api Routes
@@ -2823,6 +2873,7 @@ api.add_resource(updateDriverSchedule, '/api/v2/updateDriverSchedule')
 api.add_resource(drivers_sort_report, '/api/v2/drivers_sort_report/<string:date>,<string:driver_num>')
 api.add_resource(updateRouteOrder, '/api/v2/updateRouteOrder')
 api.add_resource(sortedProduce, '/api/v2/sortedProduce')
+api.add_resource(driverDirections, '/api/v2/driverDirections')
 
 #Driver SignUp and Login Routes
 
