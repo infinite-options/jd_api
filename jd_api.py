@@ -1599,7 +1599,30 @@ class GetBusinessConstraints(Resource):
         # http://127.0.0.1:4000/api/v2/getBusinessConstraints/<string:business_uid>
         # https://rqiber37a4.execute-api.us-west-1.amazonaws.com/dev/api/v2/getBusinessConstraints/<string:business_uid>
 
+
 # Driver Queries
+class SpecificDriver(Resource):
+    def get(self):
+        response = {}
+        items = {}
+        try:
+            conn = connect()
+            data = request.get_json(force=True)
+            print(data)
+            driver_uid = data['driver_uid']
+            print(driver_uid)
+            items = execute("""SELECT * FROM jd.drivers WHERE driver_uid = \'""" + driver_uid + """\';""", 'get', conn)
+            response['message'] = 'Successful getting drivers'
+            response['result'] = items
+
+            return items, 200
+
+        except:
+            raise BadRequest('Request failed, error in SpecificDrivers.')
+
+        finally:
+            disconnect(conn)
+
 class Drivers(Resource):
     def get(self):
         response = {}
@@ -2986,6 +3009,7 @@ api.add_resource(Purchases, '/api/v2/Purchases')
 api.add_resource(Businesses, '/api/v2/Businesses')
 api.add_resource(InsertNewBusiness, '/api/v2/insertNewBusiness')
 api.add_resource(GetBusinessConstraints,'/api/v2/getBusinessConstraints/<string:business_uid>')
+api.add_resource(SpecificDriver, '/api/v2/SpecificDriver')
 api.add_resource(Drivers, '/api/v2/Drivers')
 api.add_resource(UpdateDriverID, '/api/v2/updateDriverID/<string:driver_id>/<string:route_id>')
 api.add_resource(GetCustomersByBusiness,'/api/v2/getCustomersByBusiness/<string:business_uid>')
