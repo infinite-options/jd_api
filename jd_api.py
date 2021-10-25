@@ -31,6 +31,8 @@ from bing_api import *
 from kmeans import Kmeans
 import pandas as pd
 import numpy as np
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
 
 RDS_HOST = 'io-mysqldb8.cxjnrciilyjq.us-west-1.rds.amazonaws.com'
@@ -253,7 +255,7 @@ class SignUp(Resource):
             last_name = request.form.get('last_name') if request.form.get('last_name') is not None else 'NULL'
             business_uid = request.form.get('business_uid') if request.form.get('business_uid') is not None else 'NULL'
             referral_source = request.form.get('referral_source') if request.form.get('referral_source') is not None else 'NULL'
-            driver_hours = request.form.get('driver_hours') if request.form.get('driver_hours') is not None else 'NULL'
+            driver_hours = request.form.get('driver_hours') if request.form.get('driver_hours') is not None else '[]'
             street = request.form.get('street') if request.form.get('street') is not None else 'NULL'
             unit = request.form.get('unit') if request.form.get('unit') is not None else 'NULL'
             city = request.form.get('city') if request.form.get('city') is not None else 'NULL'
@@ -282,13 +284,14 @@ class SignUp(Resource):
             driver_uid = request.form.get('driver_uid') if request.form.get('driver_uid') is not None else 'NULL'
             social_id = request.form.get('social_id') if request.form.get('social_id') is not None else 'NULL'
 
-            
+            print('part 1 done',first_name,last_name,email,password)
             if request.form.get('social') is None or request.form.get('social') == "FALSE" or request.form.get('social') == False or request.form.get('social') == "NULL":
                 social_signup = False
+                print('Part 1.1')
             else:
                 social_signup = True
             
-
+            print('part 2 done')
             get_driver_id_query = "CALL jd.get_driver_id();"
             NewUserIDresponse = execute(get_driver_id_query, 'get', conn)
             #print(NewUserIDresponse)
@@ -313,8 +316,8 @@ class SignUp(Resource):
             if social_signup == False:
 
                 salt = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-
-                password = sha512((request.form.get('password') + salt).encode()).hexdigest()
+                print("in")
+                password = sha512((password + salt).encode()).hexdigest()
                 print('password------', password)
                 algorithm = "SHA512"
                 mobile_access_token = 'NULL'
@@ -1910,6 +1913,46 @@ class GetRoutes(Resource):
                 response['code'] = 404
                 return response, 500
             
+            # get zones
+            zone_uids = str(tuple(data['zones']))
+            query_zone = """
+                    SELECT * from sf.zones
+                    WHERE zone_uid IN """ + zone_uids + """;
+                  """
+            items_zone = execute(query_zone, 'get', conn)
+            if items_zone['code'] != 280:
+                items_zone['message'] = 'check sql query'
+                return items_zone
+            purchases_temp = []
+            for purchase_val in purchases:
+                print(purchase_val['delivery_first_name'],purchase_val['delivery_longitude'],purchase_val['delivery_latitude'])
+                for vals in items_zone['result']:
+                    LT_long = vals['LT_long']
+                    LT_lat = vals['LT_lat']
+                    LB_long = vals['LB_long']
+                    LB_lat = vals['LB_lat']
+                    RT_long = vals['RT_long']
+                    RT_lat = vals['RT_lat']
+                    RB_long = vals['RB_long']
+                    RB_lat = vals['RB_lat']
+
+                    point = Point(float(purchase_val['delivery_longitude']),float(purchase_val['delivery_latitude']))
+                    print([(LB_long, LB_lat), (LT_long, LT_lat), (RT_long, RT_lat), (RB_long, RB_lat)])
+                    polygon = Polygon([(LB_long, LB_lat), (LT_long, LT_lat), (RT_long, RT_lat), (RB_long, RB_lat)])
+                    res = polygon.contains(point)
+                    print(res)
+                    
+                    if res:
+                        print("GOT THE DATA")
+                        purchases_temp.append(purchase_val)
+                        break
+            
+            print([val['purchase_uid'] for val in purchases])
+            print([val['purchase_uid'] for val in purchases_temp])
+            
+            purchases = purchases_temp
+            
+            
            
             res = {}
             uids = set()
@@ -1941,6 +1984,7 @@ class GetRoutes(Resource):
                     #print(res[varAd]['items'])
             
             purchases = [its for  key,its in res.items()]
+            
             #Add customers and addresses for each business
             addresses = []
             first = []
@@ -1958,7 +2002,7 @@ class GetRoutes(Resource):
             start_delivery_date = []
             state = []
             unit = []
-            # print(purchases)
+            print('purchases',purchases)
             for purchase in purchases:
                 address = purchase['delivery_address'] + ', ' + purchase['delivery_unit'] + ', ' + purchase['delivery_city'] + ', ' + purchase['delivery_state'] + ', ' + purchase['delivery_zip']
                 first.append(purchase['delivery_first_name'])
@@ -1979,21 +2023,23 @@ class GetRoutes(Resource):
                 customer_uid.append(purchase['pur_customer_uid'])
                 start_delivery_date.append(purchase['start_delivery_date'])
 
-            
+            print("@@@@Address",addresses,first)
             business_name = db_name
             business_start_address = farm_address + ' ' + farm_city + ', ' + farm_state + ' ' + farm_zip
             business_start_coordinates = Coordinates([business_start_address]).calculateFromLocations()[0]
             coordinates = Coordinates(addresses).calculateFromLocations()
 
-            areas = {business_start_address:[business_start_coordinates, business_name, '', '', '', '', farm_address, farm_city, farm_state, farm_zip, '', '', '','', '','']}
+            areas = {business_start_address+"-Farmer's Market":[business_start_coordinates, business_name, '', '', '', '', farm_address, farm_city, farm_state, farm_zip, '', '', '','', '','','false']}
             for i in range(len(coordinates)):
-                areas[addresses[i]] = [coordinates[i], first[i], last[i], delivery_instructions[i], 
-                    email[i], phone[i], street[i], city[i], state[i], zipcode[i], items[i], delivery_status[i], purchase_uid[i], customer_uid[i], start_delivery_date[i],unit[i]]
+                areas[addresses[i]+'-'+first[i]+last[i]] = [coordinates[i], first[i], last[i], delivery_instructions[i], 
+                    email[i], phone[i], street[i], city[i], state[i], zipcode[i], items[i], delivery_status[i], purchase_uid[i], customer_uid[i], start_delivery_date[i],unit[i],'false']
 
             coords_dict = {'latitude':[], 'longitude':[]}
             for i in coordinates:
                 coords_dict['latitude'].append(i['latitude'])
                 coords_dict['longitude'].append(i['longitude'])
+            
+            print("###coors is",coords_dict)
 
             #Create np array for coordinates
             df = pd.DataFrame.from_dict(coords_dict)
@@ -2026,9 +2072,12 @@ class GetRoutes(Resource):
                     num_deliveries = len(solution['result'][0]) - 2
                     route_distance = solution['route_dist'][0]
                     route_time = round(route_distance/96.65, 2)
-                    
+                    print("**********************solution",solution)
+                    print("))))))))))))))))) areas are",[key for key,val in areas.items()])
                     for place in solution['result']:
                         for loc in place:
+                            print("--------------------loc",loc)
+                            customer_coords = ''
                             street = ''
                             customer_first = ''
                             customer_last = ''
@@ -2046,8 +2095,9 @@ class GetRoutes(Resource):
                             start = ''
                             unit = ''
                             for i in areas:
-                                #print('printing areas',areas[i])
-                                if (coords[loc]['latitude'],coords[loc]['longitude']) == (areas[i][0]['latitude'],areas[i][0]['longitude']):
+                                
+                                if (coords[loc]['latitude'],coords[loc]['longitude']) == (areas[i][0]['latitude'],areas[i][0]['longitude']) and areas[i][-1] == 'false':
+                                    print('printing areas',areas[i][1],areas[i][-1])
                                     street = i
                                     customer_coords = areas[i][0]
                                     customer_first = areas[i][1]
@@ -2065,18 +2115,21 @@ class GetRoutes(Resource):
                                     cust_uid = areas[i][13]
                                     start = areas[i][14]
                                     unit = areas[i][15]
-                            print(count, "   ", street, "    ")
-                            #print(cust_items)
-                            route_dict[count] = [{'coordinates':customer_coords, 'delivery_street':cust_street, 'delivery_unit':unit,'delivery_city':cust_city, 'delivery_state':cust_state, 
-                                                'delivery_zip':cust_zip,'delivery_first_name':customer_first, 'delivery_last_name':customer_last,
-                                                'delivery_instructions':deli_instruc, 'email':cust_email, 'phone':cust_phone, 
-                                                'items':cust_items, 'delivery_status':deli_status, 'purchase_uid':pur_uid, 'customer_uid':cust_uid, 'start_delivery_date':str(start)}]
-                            #route_dict[count] = customer_coords
-                            #print(route_dict[count])
-                            count += 1
+                                    areas[i][-1] = 'true'
+                                    
+
+                                    print(count, "   ", street, "    ")
+                                    #print(cust_items)
+                                    route_dict[count] = [{'coordinates':customer_coords, 'delivery_street':cust_street, 'delivery_unit':unit,'delivery_city':cust_city, 'delivery_state':cust_state, 
+                                                        'delivery_zip':cust_zip,'delivery_first_name':customer_first, 'delivery_last_name':customer_last,
+                                                        'delivery_instructions':deli_instruc, 'email':cust_email, 'phone':cust_phone, 
+                                                        'items':cust_items, 'delivery_status':deli_status, 'purchase_uid':pur_uid, 'customer_uid':cust_uid, 'start_delivery_date':str(start)}]
+                                    #route_dict[count] = customer_coords
+                                    #print(route_dict[count])
+                                    count += 1
 
                     
-                    route_dict.popitem()
+                    # route_dict.popitem()
                     loaded_route = json.dumps(route_dict)
 
                     #Get new route id
@@ -2838,7 +2891,89 @@ class driverDirections(Resource):
         finally:
             disconnect(conn)
 
+
+######################################### RIDE SHARE ######################################################## 
+
+class custInfo(Resource):
+     def post(self):
+        try:
+            conn = connect()
+            data = request.get_json(force=True)
+            action = data['action']
+            cust_id = data['cust_id']
+            if action == 'get':
+                
+                query = """
+                        SELECT * FROM test.ride_share 
+                        WHERE cust_id  = \'""" + cust_id + """\';
+                        """
+                return execute(query,'get',conn)
             
+            elif action == 'post':
+                location = data['location']
+                location = "'" + str(location).replace("'", "\"") + "'"
+                query = """
+                        UPDATE test.ride_share
+                         SET cust_location = """ + location + """ 
+                         WHERE (cust_id = \'""" + cust_id + """\');
+                        """
+                return execute(query,'post',conn)
+            else:
+                return 'choose correct option'
+        
+        except:
+            raise BadRequest('Bad request, error while calling cust info')
+        finally:
+            disconnect(conn)
+
+
+
+class getDriver(Resource):
+    def get(self,cust_id,radius):
+        try:
+            conn = connect()
+            query = """
+                    SELECT cust_location FROM test.ride_share
+                    WHERE cust_id = \'""" + cust_id + """\';
+                    """
+            items = execute(query,'get',conn)
+            if items['code'] != 280:
+                items['message'] = 'check sql query'
+                return items
+            passanger_location = json.loads(items['result'][0]['cust_location'])
+            
+            from haversine import haversine, Unit
+            passanger = (passanger_location['lat'], passanger_location['long']) # (lat, lon)
+            #get drivers who are online and free
+
+            query = """
+                    SELECT * FROM test.ride_share
+                    WHERE cust_type = 'DRIVER' AND cust_available = 'TRUE';
+                    """
+            items = execute(query,'get',conn)
+            if items['code'] != 280:
+                items['message'] = 'check sql query'
+                return items
+            avail_drivers = []
+            for drivers in items['result']:
+                driver_location = json.loads(drivers['cust_location'])
+                driver = (driver_location['lat'], driver_location['long'])
+
+                distance = haversine(passanger, driver, unit=Unit.MILES)
+                print(distance)
+                if distance <= float(radius):
+                    avail_drivers.append(drivers)
+
+            items['result'] = avail_drivers
+            return items
+        
+        except:
+            raise BadRequest('Bad request, error while calling get driver')
+        finally:
+            disconnect(conn)
+
+#################################################################################################
+
 # Api Routes
 api.add_resource(SignUp, '/api/v2/SignUp')
 api.add_resource(AccountSalt, '/api/v2/AccountSalt')
@@ -2874,6 +3009,18 @@ api.add_resource(drivers_sort_report, '/api/v2/drivers_sort_report/<string:date>
 api.add_resource(updateRouteOrder, '/api/v2/updateRouteOrder')
 api.add_resource(sortedProduce, '/api/v2/sortedProduce')
 api.add_resource(driverDirections, '/api/v2/driverDirections')
+
+
+
+
+
+
+############################################ RIDE SHARE
+
+api.add_resource(custInfo, '/api/v2/custInfo')
+api.add_resource(getDriver, '/api/v2/getDriver/<string:cust_id>,<string:radius>')
+
+############################################
 
 #Driver SignUp and Login Routes
 
