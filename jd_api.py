@@ -408,7 +408,7 @@ class SignUp(Resource):
                                     mobile_refresh_token = \'''' + mobile_refresh_token + '''\',
                                     social_id = \'''' + social_id + '''\'
                                     WHERE driver_uid = \'''' + driver_uid + '''\';
-                                    '''
+                                    ''' 
 
 
             else:
@@ -437,97 +437,144 @@ class SignUp(Resource):
                 print("inserting to db")
                 print(license_num,license_exp)
                 # write everything to database
-                driver_insert_query = """
-                                        INSERT INTO jd.drivers
-                                        (
-                                            driver_uid,
-                                            driver_created_at,
-                                            driver_first_name,
-                                            driver_last_name,
-                                            business_id,
-                                            referral_source,
-                                            driver_available_hours,
-                                            driver_street,
-                                            driver_unit,
-                                            driver_city,
-                                            driver_state,
-                                            driver_zip,
-                                            driver_latitude,
-                                            driver_longitude,
-                                            driver_email,
-                                            driver_phone_num,
-                                            driver_ssn,
-                                            driver_license,
-                                            driver_license_exp,
-                                            driver_car_year,
-                                            driver_car_model,
-                                            driver_car_make,
-                                            driver_insurance_carrier,
-                                            driver_insurance_num,
-                                            driver_insurance_exp_date,
-                                            driver_insurance_picture, 
-                                            emergency_contact_name,
-                                            emergency_contact_phone,
-                                            emergency_contact_relationship,
-                                            bank_account_info,
-                                            bank_routing_info,
-                                            password_salt,
-                                            password_hashed,
-                                            password_algorithm,
-                                            user_social_media,
-                                            user_access_token,
-                                            social_timestamp,
-                                            user_refresh_token,
-                                            mobile_access_token,
-                                            mobile_refresh_token,
-                                            social_id
-                                        )
-                                        VALUES
-                                        (
-                                            \'""" + NewUserID + """\',
-                                            \'""" + str((datetime.now()).strftime("%Y-%m-%d %H:%M:%S")) + """\',
-                                            \'""" + first_name + """\',
-                                            \'""" + last_name + """\',
-                                            \'""" + business_uid + """\',
-                                            \'""" + referral_source + """\',
-                                            \'""" + driver_hours + """\',
-                                            \'""" + street + """\',
-                                            \'""" + unit + """\',
-                                            \'""" + city + """\',
-                                            \'""" + state + """\',
-                                            \'""" + zipcode + """\',
-                                            \'""" + latitude + """\',
-                                            \'""" + longitude + """\',
-                                            \'""" + email + """\',
-                                            \'""" + phone + """\',
-                                            \'""" + ssn + """\',
-                                            \'""" + license_num + """\',
-                                            \'""" + license_exp + """\',
-                                            \'""" + driver_car_year + """\',
-                                            \'""" + driver_car_model + """\',
-                                            \'""" + driver_car_make + """\',
-                                            \'""" + driver_insurance_carrier + """\',
-                                            \'""" + driver_insurance_num + """\',
-                                            \'""" + driver_insurance_exp_date + """\',
-                                            \'""" + driver_insurance_picture + """\',
-                                            \'""" + contact_name + """\',
-                                            \'""" + contact_phone + """\',
-                                            \'""" + contact_relation + """\',
-                                            \'""" + bank_acc_info + """\',
-                                            \'""" + bank_routing_info + """\',
-                                            \'""" + salt + """\',
-                                            \'""" + password + """\',
-                                            \'""" + algorithm + """\',
-                                            \'""" + user_social_signup + """\',
-                                            \'""" + user_access_token + """\',
-                                            DATE_ADD(now() , INTERVAL 14 DAY),
-                                            \'""" + user_refresh_token + """\',
-                                            \'""" + mobile_access_token + """\',
-                                            \'""" + mobile_refresh_token + """\',
-                                            \'""" + social_id + """\');
-                                            """
-            print(driver_insert_query)
 
+                driver_insert_query =  '''
+                                    INSERT INTO jd.drivers
+                                    SET 
+                                    driver_uid = \'''' + NewUserID + '''\',
+                                    driver_created_at = \'''' + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + '''\',
+                                    driver_first_name = \'''' + first_name + '''\',
+                                    driver_last_name = \'''' + last_name + '''\',
+                                    business_id = \'''' + business_uid + '''\',
+                                    referral_source = \'''' + referral_source + '''\',
+                                    driver_available_hours = \'''' + driver_hours + '''\',
+                                    driver_street = \'''' + street + '''\',
+                                    driver_unit = \'''' + unit + '''\',
+                                    driver_city = \'''' + city + '''\',
+                                    driver_state = \'''' + state + '''\',
+                                    driver_zip = \'''' + zipcode + '''\',
+                                    driver_latitude = \'''' + latitude + '''\',
+                                    driver_longitude = \'''' + longitude + '''\',
+                                    driver_phone_num = \'''' + phone + '''\',
+                                    driver_email = \'''' + email + '''\',
+                                    driver_ssn = \'''' + ssn + '''\',
+                                    driver_license = \'''' + license_num + '''\',
+                                    driver_license_exp = \'''' + license_exp + '''\',
+                                    driver_car_year = \'''' + driver_car_year + '''\',
+                                    driver_car_model = \'''' + driver_car_model + '''\',
+                                    driver_car_make = \'''' + driver_car_make + '''\',
+                                    driver_insurance_carrier = \'''' + driver_insurance_carrier + '''\',
+                                    driver_insurance_num = \'''' + driver_insurance_num + '''\',
+                                    driver_insurance_exp_date = \'''' + driver_insurance_exp_date + '''\',
+                                    driver_insurance_picture = \'''' + driver_insurance_picture + '''\',
+                                    emergency_contact_name = \'''' + contact_name + '''\',
+                                    emergency_contact_phone = \'''' + contact_phone + '''\',
+                                    emergency_contact_relationship = \'''' + contact_relation + '''\',
+                                    bank_account_info = \'''' + bank_acc_info + '''\',
+                                    bank_routing_info = \'''' + bank_routing_info + '''\',
+                                    password_salt = \'''' + salt + '''\',
+                                    password_hashed = \'''' + password + '''\',
+                                    password_algorithm = \'''' + algorithm + '''\',
+                                    user_social_media = \'''' + user_social_signup + '''\',
+                                    user_access_token = \'''' + user_access_token + '''\',
+                                    social_timestamp = DATE_ADD(now() , INTERVAL 14 DAY),
+                                    user_refresh_token = \'''' + user_refresh_token + '''\',
+                                    mobile_access_token = \'''' + mobile_access_token + '''\',
+                                    mobile_refresh_token = \'''' + mobile_refresh_token + '''\',
+                                    social_id = \'''' + social_id + '''\';
+                                    ''' 
+
+                # driver_insert_query = """
+                #                         INSERT INTO jd.drivers
+                #                         (
+                #                             driver_uid,
+                #                             driver_created_at,
+                #                             driver_first_name,
+                #                             driver_last_name,
+                #                             business_id,
+                #                             referral_source,
+                #                             driver_available_hours,
+                #                             driver_street,
+                #                             driver_unit,
+                #                             driver_city,
+                #                             driver_state,
+                #                             driver_zip,
+                #                             driver_latitude,
+                #                             driver_longitude,
+                #                             driver_email,
+                #                             driver_phone_num,
+                #                             driver_ssn,
+                #                             driver_license,
+                #                             driver_license_exp,
+                #                             driver_car_year,
+                #                             driver_car_model,
+                #                             driver_car_make,
+                #                             driver_insurance_carrier,
+                #                             driver_insurance_num,
+                #                             driver_insurance_exp_date,
+                #                             driver_insurance_picture, 
+                #                             emergency_contact_name,
+                #                             emergency_contact_phone,
+                #                             emergency_contact_relationship,
+                #                             bank_account_info,
+                #                             bank_routing_info,
+                #                             password_salt,
+                #                             password_hashed,
+                #                             password_algorithm,
+                #                             user_social_media,
+                #                             user_access_token,
+                #                             social_timestamp,
+                #                             user_refresh_token,
+                #                             mobile_access_token,
+                #                             mobile_refresh_token,
+                #                             social_id
+                #                         )
+                #                         VALUES
+                #                         (
+                #                             \'""" + NewUserID + """\',
+                #                             \'""" + str((datetime.now()).strftime("%Y-%m-%d %H:%M:%S")) + """\',
+                #                             \'""" + first_name + """\',
+                #                             \'""" + last_name + """\',
+                #                             \'""" + business_uid + """\',
+                #                             \'""" + referral_source + """\',
+                #                             \'""" + driver_hours + """\',
+                #                             \'""" + street + """\',
+                #                             \'""" + unit + """\',
+                #                             \'""" + city + """\',
+                #                             \'""" + state + """\',
+                #                             \'""" + zipcode + """\',
+                #                             \'""" + latitude + """\',
+                #                             \'""" + longitude + """\',
+                #                             \'""" + email + """\',
+                #                             \'""" + phone + """\',
+                #                             \'""" + ssn + """\',
+                #                             \'""" + license_num + """\',
+                #                             \'""" + license_exp + """\',
+                #                             \'""" + driver_car_year + """\',
+                #                             \'""" + driver_car_model + """\',
+                #                             \'""" + driver_car_make + """\',
+                #                             \'""" + driver_insurance_carrier + """\',
+                #                             \'""" + driver_insurance_num + """\',
+                #                             \'""" + driver_insurance_exp_date + """\',
+                #                             \'""" + driver_insurance_picture + """\',
+                #                             \'""" + contact_name + """\',
+                #                             \'""" + contact_phone + """\',
+                #                             \'""" + contact_relation + """\',
+                #                             \'""" + bank_acc_info + """\',
+                #                             \'""" + bank_routing_info + """\',
+                #                             \'""" + salt + """\',
+                #                             \'""" + password + """\',
+                #                             \'""" + algorithm + """\',
+                #                             \'""" + user_social_signup + """\',
+                #                             \'""" + user_access_token + """\',
+                #                             DATE_ADD(now() , INTERVAL 14 DAY),
+                #                             \'""" + user_refresh_token + """\',
+                #                             \'""" + mobile_access_token + """\',
+                #                             \'""" + mobile_refresh_token + """\',
+                #                             \'""" + social_id + """\');
+                #                             """
+            print(driver_insert_query)
+            
             items = execute(driver_insert_query, 'post', conn)
             print(items)
             if items['code'] != 281:
@@ -1602,7 +1649,7 @@ class GetBusinessConstraints(Resource):
 
 # Driver Queries
 class SpecificDriver(Resource):
-    def get(self):
+    def post(self):
         response = {}
         items = {}
         try:
