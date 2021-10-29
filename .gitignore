@@ -1,4 +1,34 @@
+## CTB-Backend Git Ignore File
+## JD-Backend Git Ignore File
+##
+## Get latest from https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+
+# Zappa setting files
 zappa_settings.json
-__pycache__
-serving_fresh_api-env
+
+# misc
+.DS_Store
+
+
+# . files
+.pem
+.log
+.vscode
+.idea
+
+
+# py files
+api_key.py
+env_keys.py
+bing_api_key.py
+node_modules
+yarn.lock
+env
+venv
+sample.py
+
+# __ files
+__pycache__/
+ms-env
 jd_env

@@ -484,95 +484,7 @@ class SignUp(Resource):
                                     social_id = \'''' + social_id + '''\';
                                     ''' 
 
-                # driver_insert_query = """
-                #                         INSERT INTO jd.drivers
-                #                         (
-                #                             driver_uid,
-                #                             driver_created_at,
-                #                             driver_first_name,
-                #                             driver_last_name,
-                #                             business_id,
-                #                             referral_source,
-                #                             driver_available_hours,
-                #                             driver_street,
-                #                             driver_unit,
-                #                             driver_city,
-                #                             driver_state,
-                #                             driver_zip,
-                #                             driver_latitude,
-                #                             driver_longitude,
-                #                             driver_email,
-                #                             driver_phone_num,
-                #                             driver_ssn,
-                #                             driver_license,
-                #                             driver_license_exp,
-                #                             driver_car_year,
-                #                             driver_car_model,
-                #                             driver_car_make,
-                #                             driver_insurance_carrier,
-                #                             driver_insurance_num,
-                #                             driver_insurance_exp_date,
-                #                             driver_insurance_picture, 
-                #                             emergency_contact_name,
-                #                             emergency_contact_phone,
-                #                             emergency_contact_relationship,
-                #                             bank_account_info,
-                #                             bank_routing_info,
-                #                             password_salt,
-                #                             password_hashed,
-                #                             password_algorithm,
-                #                             user_social_media,
-                #                             user_access_token,
-                #                             social_timestamp,
-                #                             user_refresh_token,
-                #                             mobile_access_token,
-                #                             mobile_refresh_token,
-                #                             social_id
-                #                         )
-                #                         VALUES
-                #                         (
-                #                             \'""" + NewUserID + """\',
-                #                             \'""" + str((datetime.now()).strftime("%Y-%m-%d %H:%M:%S")) + """\',
-                #                             \'""" + first_name + """\',
-                #                             \'""" + last_name + """\',
-                #                             \'""" + business_uid + """\',
-                #                             \'""" + referral_source + """\',
-                #                             \'""" + driver_hours + """\',
-                #                             \'""" + street + """\',
-                #                             \'""" + unit + """\',
-                #                             \'""" + city + """\',
-                #                             \'""" + state + """\',
-                #                             \'""" + zipcode + """\',
-                #                             \'""" + latitude + """\',
-                #                             \'""" + longitude + """\',
-                #                             \'""" + email + """\',
-                #                             \'""" + phone + """\',
-                #                             \'""" + ssn + """\',
-                #                             \'""" + license_num + """\',
-                #                             \'""" + license_exp + """\',
-                #                             \'""" + driver_car_year + """\',
-                #                             \'""" + driver_car_model + """\',
-                #                             \'""" + driver_car_make + """\',
-                #                             \'""" + driver_insurance_carrier + """\',
-                #                             \'""" + driver_insurance_num + """\',
-                #                             \'""" + driver_insurance_exp_date + """\',
-                #                             \'""" + driver_insurance_picture + """\',
-                #                             \'""" + contact_name + """\',
-                #                             \'""" + contact_phone + """\',
-                #                             \'""" + contact_relation + """\',
-                #                             \'""" + bank_acc_info + """\',
-                #                             \'""" + bank_routing_info + """\',
-                #                             \'""" + salt + """\',
-                #                             \'""" + password + """\',
-                #                             \'""" + algorithm + """\',
-                #                             \'""" + user_social_signup + """\',
-                #                             \'""" + user_access_token + """\',
-                #                             DATE_ADD(now() , INTERVAL 14 DAY),
-                #                             \'""" + user_refresh_token + """\',
-                #                             \'""" + mobile_access_token + """\',
-                #                             \'""" + mobile_refresh_token + """\',
-                #                             \'""" + social_id + """\');
-                #                             """
+            
             print(driver_insert_query)
             
             items = execute(driver_insert_query, 'post', conn)
@@ -633,6 +545,17 @@ class SignUp(Resource):
 #     "social_id": "NULL",
 #     "social" : "NULL"
 # }
+
+
+
+
+
+
+
+
+
+
+
 
 # confirmation page
 @app.route('/api/v2/confirm', methods=['GET'])
@@ -696,120 +619,561 @@ class AccountSalt(Resource):
 # }
 
 
-'''
-# old login
-class Login(Resource):
+class UpdateSocialProfile(Resource):
     def post(self):
         response = {}
+        items = []
         try:
             conn = connect()
-            data = request.get_json(force=True)
-            email = data['email']
-            password = data.get('password')
-            refresh_token = data.get('token')
-            signup_platform = data.get('signup_platform')
-            query = """
-                    SELECT driver_uid,
-                        driver_first_name,
-                        driver_last_name,
-                        driver_email,
-                        password_hashed,
-                        email_verified,
-                        user_social_media,
-                        user_access_token,
-                        user_refresh_token
-                    FROM jd.drivers
-                    WHERE driver_email = \'""" + email + """\';
-                    """
-            items = execute(query, 'get', conn)
-            print('Password', password)
+            #missing driver uid in carlos' input
+            # first_name = request.form.get('first_name') if request.form.get('first_name') is not None else 'NULL'
+            # last_name = request.form.get('last_name') if request.form.get('last_name') is not None else 'NULL'
+            business_uid = request.form.get('business_uid') if request.form.get('business_uid') is not None else 'NULL'
+            referral_source = request.form.get('referral_source') if request.form.get('referral_source') is not None else 'NULL'
+            driver_hours = request.form.get('driver_hours') if request.form.get('driver_hours') is not None else '[]'
+            street = request.form.get('street') if request.form.get('street') is not None else 'NULL'
+            unit = request.form.get('unit') if request.form.get('unit') is not None else 'NULL'
+            city = request.form.get('city') if request.form.get('city') is not None else 'NULL'
+            state = request.form.get('state') if request.form.get('state') is not None else 'NULL'
+            zipcode = request.form.get('zipcode') if request.form.get('zipcode') is not None else 'NULL'
+            longitude = request.form.get('longitude') if request.form.get('longitude') is not None else 'NULL'
+            latitude = request.form.get('latitude') if request.form.get('latitude') is not None else 'NULL'
+            # email = request.form.get('email') if request.form.get('email') is not None else 'NULL'
+            phone = request.form.get('phone') if request.form.get('phone') is not None else 'NULL'
+            ssn = request.form.get('ssn') if request.form.get('ssn') is not None else 'NULL'
+            license_num = request.form.get('license_num') if request.form.get('license_num') is not None else 'NULL'
+            license_exp = request.form.get('license_exp') if request.form.get('license_exp') is not None else 'NULL'
+            driver_car_year = request.form.get('driver_car_year') if request.form.get('driver_car_year') is not None else 'NULL'
+            driver_car_model = request.form.get('driver_car_model') if request.form.get('driver_car_model') is not None else 'NULL'
+            driver_car_make = request.form.get('driver_car_make') if request.form.get('driver_car_make') is not None else 'NULL'
+            driver_insurance_carrier = request.form.get('driver_insurance_carrier') if request.form.get('driver_insurance_carrier') is not None else 'NULL'
+            driver_insurance_num = request.form.get('driver_insurance_num') if request.form.get('driver_insurance_num') is not None else 'NULL'
+            driver_insurance_exp_date = request.form.get('driver_insurance_exp_date') if request.form.get('driver_insurance_exp_date') is not None else 'NULL'
+            driver_insurance_picture = request.files.get('driver_insurance_picture') if request.files.get('driver_insurance_picture') is not None else 'NULL'
+            contact_name = request.form.get('contact_name') if request.form.get('contact_name') is not None else 'NULL'
+            contact_phone = request.form.get('contact_phone') if request.form.get('contact_phone') is not None else 'NULL'
+            contact_relation = request.form.get('contact_relation') if request.form.get('contact_relation') is not None else 'NULL'
+            bank_acc_info = request.form.get('bank_acc_info') if request.form.get('bank_acc_info') is not None else 'NULL'
+            bank_routing_info = request.form.get('bank_routing_info') if request.form.get('bank_routing_info') is not None else 'NULL'
+            # password = request.form.get('password') if request.form.get('password') is not None else 'NULL'
+            driver_uid = request.form.get('driver_uid') if request.form.get('driver_uid') is not None else 'NULL'
+            # social_id = request.form.get('social_id') if request.form.get('social_id') is not None else 'NULL'
+
+            # print('part 1 done',first_name,last_name,email,password)
+            # if request.form.get('social') is None or request.form.get('social') == "FALSE" or request.form.get('social') == False or request.form.get('social') == "NULL":
+            #     social_signup = False
+            #     print('Part 1.1')
+            # else:
+            #   social_signup = True
+            
+            # print('part 2 done')
+            # get_driver_id_query = "CALL jd.get_driver_id();"
+            # NewUserIDresponse = execute(get_driver_id_query, 'get', conn)
+            # #print(NewUserIDresponse)
+            # if NewUserIDresponse['code'] == 490:
+            #     string = " Cannot get new driver id. "
+            #     print("*" * (len(string) + 10))
+            #     print(string.center(len(string) + 10, "*"))
+            #     print("*" * (len(string) + 10))
+            #     response['message'] = "Internal Server Error."
+            #     return response, 500
+            # NewUserID = NewUserIDresponse['result'][0]['new_id']
+            
+            # upload image to s3
+            print("initial",driver_insurance_picture)
+            if driver_insurance_picture != 'NULL':
+                key = "driver_insurance/" + str(driver_uid) + "_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+                print(key)
+                driver_insurance_picture = helper_upload_img(driver_insurance_picture, key)
+            print("driver pic",driver_insurance_picture)
+
+
+            # if social_signup == False:
+
+            #     salt = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
+            #     print("in")
+            #     password = sha512((password + salt).encode()).hexdigest()
+            #     print('password------', password)
+            #     algorithm = "SHA512"
+            #     mobile_access_token = 'NULL'
+            #     mobile_refresh_token = 'NULL'
+            #     user_access_token = 'NULL'
+            #     user_refresh_token = 'NULL'
+            #     user_social_signup = 'NULL'
+            # else:
+
+            #     mobile_access_token = request.form.get('mobile_access_token')
+            #     mobile_refresh_token = request.form.get('mobile_refresh_token')
+            #     user_access_token = request.form.get('user_access_token')
+            #     user_refresh_token = request.form.get('user_refresh_token')
+            #     salt = 'NULL'   
+            #     password = 'NULL'
+            #     algorithm = 'NULL'
+            #     user_social_signup = request.form.get('social')
+            
+            # if driver_uid != 'NULL' and driver_uid:
+            #     print("IN IF")
+            #     NewUserID = driver_uid 
+
+            #     query = '''
+            #                 SELECT user_access_token, user_refresh_token,mobile_access_token,mobile_refresh_token
+            #                 FROM jd.drivers 
+            #                 WHERE driver_uid = \'''' + driver_uid + '''\';
+            #            '''
+            #     it = execute(query, 'get', conn)
+            #     if it['result'] == ():
+            #         return "driver does not exists"
+            #     print('query executed')
+            #     print('it-------', it)
+
+            #     if it['result'][0]['user_access_token'] != 'FALSE':
+            #         user_access_token = it['result'][0]['user_access_token']
+
+            #     if it['result'][0]['user_refresh_token'] != 'FALSE':
+            #         user_refresh_token = it['result'][0]['user_refresh_token']
+
+            #     if it['result'][0]['mobile_access_token'] != 'FALSE':
+            #         mobile_access_token = it['result'][0]['mobile_access_token']
+
+            #     if it['result'][0]['mobile_refresh_token'] != 'FALSE':
+            #         mobile_refresh_token = it['result'][0]['mobile_refresh_token']
+
+
+            driver_insert_query =  '''
+                                UPDATE jd.drivers
+                                SET 
+                                driver_created_at = \'''' + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + '''\',
+                                -- driver_first_name = \'''' + first_name + '''\',
+                                -- driver_last_name = \'''' + last_name + '''\',
+                                business_id = \'''' + business_uid + '''\',
+                                -- referral_source = \'''' + referral_source + '''\',
+                                -- driver_available_hours = \'''' + driver_hours + '''\',
+                                driver_street = \'''' + street + '''\',
+                                driver_unit = \'''' + unit + '''\',
+                                driver_city = \'''' + city + '''\',
+                                driver_state = \'''' + state + '''\',
+                                driver_zip = \'''' + zipcode + '''\',
+                                driver_latitude = \'''' + latitude + '''\',
+                                driver_longitude = \'''' + longitude + '''\',
+                                driver_phone_num = \'''' + phone + '''\',
+                                -- driver_email = \'''' + email + '''\',
+                                driver_ssn = \'''' + ssn + '''\',
+                                driver_license = \'''' + license_num + '''\',
+                                driver_license_exp = \'''' + license_exp + '''\',
+                                driver_car_year = \'''' + driver_car_year + '''\',
+                                driver_car_model = \'''' + driver_car_model + '''\',
+                                driver_car_make = \'''' + driver_car_make + '''\',
+                                driver_insurance_carrier = \'''' + driver_insurance_carrier + '''\',
+                                driver_insurance_num = \'''' + driver_insurance_num + '''\',
+                                driver_insurance_exp_date = \'''' + driver_insurance_exp_date + '''\',
+                                driver_insurance_picture = \'''' + driver_insurance_picture + '''\',
+                                emergency_contact_name = \'''' + contact_name + '''\',
+                                emergency_contact_phone = \'''' + contact_phone + '''\',
+                                emergency_contact_relationship = \'''' + contact_relation + '''\',
+                                bank_account_info = \'''' + bank_acc_info + '''\',
+                                bank_routing_info = \'''' + bank_routing_info + '''\'
+                                -- password_salt = \'''' + salt + '''\',
+                                -- password_hashed = \'''' + password + '''\',
+                                -- password_algorithm = \'''' + algorithm + '''\',
+                                -- user_social_media = \'''' + user_social_signup + '''\',
+                                -- user_access_token = \'''' + user_access_token + '''\',
+                                -- social_timestamp = DATE_ADD(now() , INTERVAL 14 DAY),
+                                -- user_refresh_token = \'''' + user_refresh_token + '''\',
+                                -- mobile_access_token = \'''' + mobile_access_token + '''\',
+                                -- mobile_refresh_token = \'''' + mobile_refresh_token + '''\',
+                                -- social_id = \'''' + social_id + '''\'
+                                WHERE driver_uid = \'''' + driver_uid + '''\';
+                                ''' 
+
+
+            # else:
+
+            #     # check if there is a same driver_id existing
+            #     query = """
+            #             SELECT driver_email FROM jd.drivers
+            #             WHERE driver_email = \'""" + email + "\';"
+            #     print('email---------' + email)
+            #     items = execute(query, 'get', conn)
+            #     if items['result']:
+
+            #         items['result'] = ""
+            #         items['code'] = 409
+            #         items['message'] = "Email address has already been taken."
+
+            #         return items
+
+            #     if items['code'] == 480:
+
+            #         items['result'] = ""
+            #         items['code'] = 480
+            #         items['message'] = "Internal Server Error."
+            #         return items
+
+            print("inserting to db")
+            # print(license_num,license_exp)
+                # write everything to database
+
+                # driver_insert_query =  '''
+                #                     INSERT INTO jd.drivers
+                #                     SET 
+                #                     driver_uid = \'''' + NewUserID + '''\',
+                #                     driver_created_at = \'''' + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + '''\',
+                #                     driver_first_name = \'''' + first_name + '''\',
+                #                     driver_last_name = \'''' + last_name + '''\',
+                #                     business_id = \'''' + business_uid + '''\',
+                #                     referral_source = \'''' + referral_source + '''\',
+                #                     driver_available_hours = \'''' + driver_hours + '''\',
+                #                     driver_street = \'''' + street + '''\',
+                #                     driver_unit = \'''' + unit + '''\',
+                #                     driver_city = \'''' + city + '''\',
+                #                     driver_state = \'''' + state + '''\',
+                #                     driver_zip = \'''' + zipcode + '''\',
+                #                     driver_latitude = \'''' + latitude + '''\',
+                #                     driver_longitude = \'''' + longitude + '''\',
+                #                     driver_phone_num = \'''' + phone + '''\',
+                #                     driver_email = \'''' + email + '''\',
+                #                     driver_ssn = \'''' + ssn + '''\',
+                #                     driver_license = \'''' + license_num + '''\',
+                #                     driver_license_exp = \'''' + license_exp + '''\',
+                #                     driver_car_year = \'''' + driver_car_year + '''\',
+                #                     driver_car_model = \'''' + driver_car_model + '''\',
+                #                     driver_car_make = \'''' + driver_car_make + '''\',
+                #                     driver_insurance_carrier = \'''' + driver_insurance_carrier + '''\',
+                #                     driver_insurance_num = \'''' + driver_insurance_num + '''\',
+                #                     driver_insurance_exp_date = \'''' + driver_insurance_exp_date + '''\',
+                #                     driver_insurance_picture = \'''' + driver_insurance_picture + '''\',
+                #                     emergency_contact_name = \'''' + contact_name + '''\',
+                #                     emergency_contact_phone = \'''' + contact_phone + '''\',
+                #                     emergency_contact_relationship = \'''' + contact_relation + '''\',
+                #                     bank_account_info = \'''' + bank_acc_info + '''\',
+                #                     bank_routing_info = \'''' + bank_routing_info + '''\',
+                #                     password_salt = \'''' + salt + '''\',
+                #                     password_hashed = \'''' + password + '''\',
+                #                     password_algorithm = \'''' + algorithm + '''\',
+                #                     user_social_media = \'''' + user_social_signup + '''\',
+                #                     user_access_token = \'''' + user_access_token + '''\',
+                #                     social_timestamp = DATE_ADD(now() , INTERVAL 14 DAY),
+                #                     user_refresh_token = \'''' + user_refresh_token + '''\',
+                #                     mobile_access_token = \'''' + mobile_access_token + '''\',
+                #                     mobile_refresh_token = \'''' + mobile_refresh_token + '''\',
+                #                     social_id = \'''' + social_id + '''\';
+                #                     ''' 
+
+            
+            print(driver_insert_query)
+            
+            items = execute(driver_insert_query, 'post', conn)
             print(items)
+            if items['code'] != 281:
+                items['result'] = ""
+                items['code'] = 480
+                items['message'] = "Error while inserting values in database"
 
-            if items['code'] != 280:
-                response['message'] = "Internal Server Error."
-                response['code'] = 500
-                return response
-            elif not items['result']:
-                items['message'] = 'Email Not Found. Please signup'
-                items['result'] = ''
-                items['code'] = 404
-                return items
-            else:
-                print(items['result'])
-                print('sc: ', items['result'][0]['user_social_media'])
-
-
-                # checks if login was by social media
-                if password and items['result'][0]['user_social_media'] != 'NULL' and items['result'][0]['user_social_media'] != None:
-                    response['message'] = "Need to login by Social Media"
-                    response['code'] = 401
-                    return response
-
-               # nothing to check
-                elif (password is None and refresh_token is None) or (password is None and items['result'][0]['user_social_media'] == 'NULL'):
-                    response['message'] = "Enter password else login from social media"
-                    response['code'] = 405
-                    return response
-
-                # compare passwords if user_social_media is false
-                elif (items['result'][0]['user_social_media'] == 'NULL' or items['result'][0]['user_social_media'] == None) and password is not None:
-
-                    if items['result'][0]['password_hashed'] != password:
-                        items['message'] = "Wrong password"
-                        items['result'] = ''
-                        items['code'] = 406
-                        return items
-
-                    if ((items['result'][0]['email_verified']) == '0') or (items['result'][0]['email_verified'] == "FALSE"):
-                        response['message'] = "Account need to be verified by email."
-                        response['code'] = 407
-                        return response
-
-                # compare the refresh token because it never expire.
-                elif (items['result'][0]['user_social_media']) != 'NULL':
-                    """
-                    keep
-                    if signup_platform != items['result'][0]['user_social_media']:
-                        items['message'] = "Wrong social media used for signup. Use \'" + items['result'][0]['user_social_media'] + "\'."
-                        items['result'] = ''
-                        items['code'] = 401
-                        return items
-                    """
-                    if (items['result'][0]['user_refresh_token'] != refresh_token):
-                        print(items['result'][0]['user_refresh_token'])
-
-                        items['message'] = "Cannot Authenticated. Token is invalid"
-                        items['result'] = ''
-                        items['code'] = 408
-                        return items
-
-                else:
-                    string = " Cannot compare the password or refresh token while log in. "
-                    print("*" * (len(string) + 10))
-                    print(string.center(len(string) + 10, "*"))
-                    print("*" * (len(string) + 10))
-                    response['message'] = string
-                    response['code'] = 500
-                    return response
-                del items['result'][0]['password_hashed']
-                del items['result'][0]['email_verified']
-
-                query = """SELECT d.driver_uid
-                                , d.driver_first_name
-                                , d.driver_last_name
-                                , d.business_id
-                                , r.route 
-                            FROM jd.drivers d, jd.routes r WHERE d.driver_uid = r.driver_num AND d.driver_email =  \'""" + email + """\';"""
-                items = execute(query, 'get', conn)
-                items['message'] = "Authenticated successfully."
-                items['code'] = 200
                 return items
 
+
+            items['result'] = {
+                'first_name': first_name,
+                'last_name': last_name,
+                'driver_uid': NewUserID,
+                'access_token': user_access_token,
+                'refresh_token': user_refresh_token
+            }
+            items['message'] = 'Signup successful'
+            items['code'] = 200
+
+
+            return items
         except:
-            raise BadRequest('Request failed, please try again later.')
+            print("Error happened while Sign Up")
+            # if "NewUserID" in locals():
+            #     execute("""DELETE FROM users WHERE user_uid = '""" + NewUserID + """';""", 'post', conn)
+            # raise BadRequest('Request failed, please try again later.')
         finally:
             disconnect(conn)
-'''
+
+
+
+
+class UpdateDirectProfile(Resource):
+    def post(self):
+        response = {}
+        items = []
+        try:
+            conn = connect()
+            #missing driver uid in carlos' input
+            first_name = request.form.get('first_name') if request.form.get('first_name') is not None else 'NULL'
+            last_name = request.form.get('last_name') if request.form.get('last_name') is not None else 'NULL'
+            business_uid = request.form.get('business_uid') if request.form.get('business_uid') is not None else 'NULL'
+            referral_source = request.form.get('referral_source') if request.form.get('referral_source') is not None else 'NULL'
+            driver_hours = request.form.get('driver_hours') if request.form.get('driver_hours') is not None else '[]'
+            street = request.form.get('street') if request.form.get('street') is not None else 'NULL'
+            unit = request.form.get('unit') if request.form.get('unit') is not None else 'NULL'
+            city = request.form.get('city') if request.form.get('city') is not None else 'NULL'
+            state = request.form.get('state') if request.form.get('state') is not None else 'NULL'
+            zipcode = request.form.get('zipcode') if request.form.get('zipcode') is not None else 'NULL'
+            longitude = request.form.get('longitude') if request.form.get('longitude') is not None else 'NULL'
+            latitude = request.form.get('latitude') if request.form.get('latitude') is not None else 'NULL'
+            # email = request.form.get('email') if request.form.get('email') is not None else 'NULL'
+            phone = request.form.get('phone') if request.form.get('phone') is not None else 'NULL'
+            ssn = request.form.get('ssn') if request.form.get('ssn') is not None else 'NULL'
+            license_num = request.form.get('license_num') if request.form.get('license_num') is not None else 'NULL'
+            license_exp = request.form.get('license_exp') if request.form.get('license_exp') is not None else 'NULL'
+            driver_car_year = request.form.get('driver_car_year') if request.form.get('driver_car_year') is not None else 'NULL'
+            driver_car_model = request.form.get('driver_car_model') if request.form.get('driver_car_model') is not None else 'NULL'
+            driver_car_make = request.form.get('driver_car_make') if request.form.get('driver_car_make') is not None else 'NULL'
+            driver_insurance_carrier = request.form.get('driver_insurance_carrier') if request.form.get('driver_insurance_carrier') is not None else 'NULL'
+            driver_insurance_num = request.form.get('driver_insurance_num') if request.form.get('driver_insurance_num') is not None else 'NULL'
+            driver_insurance_exp_date = request.form.get('driver_insurance_exp_date') if request.form.get('driver_insurance_exp_date') is not None else 'NULL'
+            driver_insurance_picture = request.files.get('driver_insurance_picture') if request.files.get('driver_insurance_picture') is not None else 'NULL'
+            contact_name = request.form.get('contact_name') if request.form.get('contact_name') is not None else 'NULL'
+            contact_phone = request.form.get('contact_phone') if request.form.get('contact_phone') is not None else 'NULL'
+            contact_relation = request.form.get('contact_relation') if request.form.get('contact_relation') is not None else 'NULL'
+            bank_acc_info = request.form.get('bank_acc_info') if request.form.get('bank_acc_info') is not None else 'NULL'
+            bank_routing_info = request.form.get('bank_routing_info') if request.form.get('bank_routing_info') is not None else 'NULL'
+            # password = request.form.get('password') if request.form.get('password') is not None else 'NULL'
+            driver_uid = request.form.get('driver_uid') if request.form.get('driver_uid') is not None else 'NULL'
+            # social_id = request.form.get('social_id') if request.form.get('social_id') is not None else 'NULL'
+
+            # print('part 1 done',first_name,last_name,email,password)
+            # if request.form.get('social') is None or request.form.get('social') == "FALSE" or request.form.get('social') == False or request.form.get('social') == "NULL":
+            #     social_signup = False
+            #     print('Part 1.1')
+            # else:
+            #     social_signup = True
+            
+            # print('part 2 done')
+            # get_driver_id_query = "CALL jd.get_driver_id();"
+            # NewUserIDresponse = execute(get_driver_id_query, 'get', conn)
+            # #print(NewUserIDresponse)
+            # if NewUserIDresponse['code'] == 490:
+            #     string = " Cannot get new driver id. "
+            #     print("*" * (len(string) + 10))
+            #     print(string.center(len(string) + 10, "*"))
+            #     print("*" * (len(string) + 10))
+            #     response['message'] = "Internal Server Error."
+            #     return response, 500
+            # NewUserID = NewUserIDresponse['result'][0]['new_id']
+            
+            # upload image to s3
+            print("initial",driver_insurance_picture)
+            if driver_insurance_picture != 'NULL':
+                key = "driver_insurance/" + str(driver_uid) + "_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+                print(key)
+                driver_insurance_picture = helper_upload_img(driver_insurance_picture, key)
+            print("driver pic",driver_insurance_picture)
+
+
+            # if social_signup == False:
+
+            #     salt = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
+            #     print("in")
+            #     password = sha512((password + salt).encode()).hexdigest()
+            #     print('password------', password)
+            #     algorithm = "SHA512"
+            #     mobile_access_token = 'NULL'
+            #     mobile_refresh_token = 'NULL'
+            #     user_access_token = 'NULL'
+            #     user_refresh_token = 'NULL'
+            #     user_social_signup = 'NULL'
+            # else:
+
+            #     mobile_access_token = request.form.get('mobile_access_token')
+            #     mobile_refresh_token = request.form.get('mobile_refresh_token')
+            #     user_access_token = request.form.get('user_access_token')
+            #     user_refresh_token = request.form.get('user_refresh_token')
+            #     salt = 'NULL'   
+            #     password = 'NULL'
+            #     algorithm = 'NULL'
+            #     user_social_signup = request.form.get('social')
+            
+            # if driver_uid != 'NULL' and driver_uid:
+            #     print("IN IF")
+            #     NewUserID = driver_uid 
+
+            #     query = '''
+            #                 SELECT user_access_token, user_refresh_token,mobile_access_token,mobile_refresh_token
+            #                 FROM jd.drivers 
+            #                 WHERE driver_uid = \'''' + driver_uid + '''\';
+            #            '''
+            #     it = execute(query, 'get', conn)
+            #     if it['result'] == ():
+            #         return "driver does not exists"
+            #     print('query executed')
+            #     print('it-------', it)
+
+            #     if it['result'][0]['user_access_token'] != 'FALSE':
+            #         user_access_token = it['result'][0]['user_access_token']
+
+            #     if it['result'][0]['user_refresh_token'] != 'FALSE':
+            #         user_refresh_token = it['result'][0]['user_refresh_token']
+
+            #     if it['result'][0]['mobile_access_token'] != 'FALSE':
+            #         mobile_access_token = it['result'][0]['mobile_access_token']
+
+            #     if it['result'][0]['mobile_refresh_token'] != 'FALSE':
+            #         mobile_refresh_token = it['result'][0]['mobile_refresh_token']
+
+
+            driver_insert_query =  '''
+                                UPDATE jd.drivers
+                                SET 
+                                driver_created_at = \'''' + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + '''\',
+                                driver_first_name = \'''' + first_name + '''\',
+                                driver_last_name = \'''' + last_name + '''\',
+                                business_id = \'''' + business_uid + '''\',
+                                -- referral_source = \'''' + referral_source + '''\',
+                                -- driver_available_hours = \'''' + driver_hours + '''\',
+                                driver_street = \'''' + street + '''\',
+                                driver_unit = \'''' + unit + '''\',
+                                driver_city = \'''' + city + '''\',
+                                driver_state = \'''' + state + '''\',
+                                driver_zip = \'''' + zipcode + '''\',
+                                driver_latitude = \'''' + latitude + '''\',
+                                driver_longitude = \'''' + longitude + '''\',
+                                driver_phone_num = \'''' + phone + '''\',
+                                -- driver_email = \'''' + email + '''\',
+                                driver_ssn = \'''' + ssn + '''\',
+                                driver_license = \'''' + license_num + '''\',
+                                driver_license_exp = \'''' + license_exp + '''\',
+                                driver_car_year = \'''' + driver_car_year + '''\',
+                                driver_car_model = \'''' + driver_car_model + '''\',
+                                driver_car_make = \'''' + driver_car_make + '''\',
+                                driver_insurance_carrier = \'''' + driver_insurance_carrier + '''\',
+                                driver_insurance_num = \'''' + driver_insurance_num + '''\',
+                                driver_insurance_exp_date = \'''' + driver_insurance_exp_date + '''\',
+                                driver_insurance_picture = \'''' + driver_insurance_picture + '''\',
+                                emergency_contact_name = \'''' + contact_name + '''\',
+                                emergency_contact_phone = \'''' + contact_phone + '''\',
+                                emergency_contact_relationship = \'''' + contact_relation + '''\',
+                                bank_account_info = \'''' + bank_acc_info + '''\',
+                                bank_routing_info = \'''' + bank_routing_info + '''\'
+                                -- password_salt = \'''' + salt + '''\',
+                                -- password_hashed = \'''' + password + '''\',
+                                -- password_algorithm = \'''' + algorithm + '''\',
+                                -- user_social_media = \'''' + user_social_signup + '''\',
+                                -- user_access_token = \'''' + user_access_token + '''\',
+                                -- social_timestamp = DATE_ADD(now() , INTERVAL 14 DAY),
+                                -- user_refresh_token = \'''' + user_refresh_token + '''\',
+                                -- mobile_access_token = \'''' + mobile_access_token + '''\',
+                                -- mobile_refresh_token = \'''' + mobile_refresh_token + '''\',
+                                -- social_id = \'''' + social_id + '''\'
+                                WHERE driver_uid = \'''' + driver_uid + '''\';
+                                ''' 
+
+
+            # else:
+
+            #     # check if there is a same driver_id existing
+            #     query = """
+            #             SELECT driver_email FROM jd.drivers
+            #             WHERE driver_email = \'""" + email + "\';"
+            #     print('email---------' + email)
+            #     items = execute(query, 'get', conn)
+            #     if items['result']:
+
+            #         items['result'] = ""
+            #         items['code'] = 409
+            #         items['message'] = "Email address has already been taken."
+
+            #         return items
+
+            #     if items['code'] == 480:
+
+            #         items['result'] = ""
+            #         items['code'] = 480
+            #         items['message'] = "Internal Server Error."
+            #         return items
+
+            #     print("inserting to db")
+            #     print(license_num,license_exp)
+            #     # write everything to database
+
+            #     driver_insert_query =  '''
+            #                         INSERT INTO jd.drivers
+            #                         SET 
+            #                         driver_uid = \'''' + NewUserID + '''\',
+            #                         driver_created_at = \'''' + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + '''\',
+            #                         driver_first_name = \'''' + first_name + '''\',
+            #                         driver_last_name = \'''' + last_name + '''\',
+            #                         business_id = \'''' + business_uid + '''\',
+            #                         referral_source = \'''' + referral_source + '''\',
+            #                         driver_available_hours = \'''' + driver_hours + '''\',
+            #                         driver_street = \'''' + street + '''\',
+            #                         driver_unit = \'''' + unit + '''\',
+            #                         driver_city = \'''' + city + '''\',
+            #                         driver_state = \'''' + state + '''\',
+            #                         driver_zip = \'''' + zipcode + '''\',
+            #                         driver_latitude = \'''' + latitude + '''\',
+            #                         driver_longitude = \'''' + longitude + '''\',
+            #                         driver_phone_num = \'''' + phone + '''\',
+            #                         driver_email = \'''' + email + '''\',
+            #                         driver_ssn = \'''' + ssn + '''\',
+            #                         driver_license = \'''' + license_num + '''\',
+            #                         driver_license_exp = \'''' + license_exp + '''\',
+            #                         driver_car_year = \'''' + driver_car_year + '''\',
+            #                         driver_car_model = \'''' + driver_car_model + '''\',
+            #                         driver_car_make = \'''' + driver_car_make + '''\',
+            #                         driver_insurance_carrier = \'''' + driver_insurance_carrier + '''\',
+            #                         driver_insurance_num = \'''' + driver_insurance_num + '''\',
+            #                         driver_insurance_exp_date = \'''' + driver_insurance_exp_date + '''\',
+            #                         driver_insurance_picture = \'''' + driver_insurance_picture + '''\',
+            #                         emergency_contact_name = \'''' + contact_name + '''\',
+            #                         emergency_contact_phone = \'''' + contact_phone + '''\',
+            #                         emergency_contact_relationship = \'''' + contact_relation + '''\',
+            #                         bank_account_info = \'''' + bank_acc_info + '''\',
+            #                         bank_routing_info = \'''' + bank_routing_info + '''\',
+            #                         password_salt = \'''' + salt + '''\',
+            #                         password_hashed = \'''' + password + '''\',
+            #                         password_algorithm = \'''' + algorithm + '''\',
+            #                         user_social_media = \'''' + user_social_signup + '''\',
+            #                         user_access_token = \'''' + user_access_token + '''\',
+            #                         social_timestamp = DATE_ADD(now() , INTERVAL 14 DAY),
+            #                         user_refresh_token = \'''' + user_refresh_token + '''\',
+            #                         mobile_access_token = \'''' + mobile_access_token + '''\',
+            #                         mobile_refresh_token = \'''' + mobile_refresh_token + '''\',
+            #                         social_id = \'''' + social_id + '''\';
+            #                         ''' 
+
+            
+            print(driver_insert_query)
+            
+            items = execute(driver_insert_query, 'post', conn)
+            print(items)
+            if items['code'] != 281:
+                items['result'] = ""
+                items['code'] = 480
+                items['message'] = "Error while inserting values in database"
+
+                return items
+
+
+            items['result'] = {
+                'first_name': first_name,
+                'last_name': last_name
+                # ,
+                # 'driver_uid': NewUserID,
+                # 'access_token': user_access_token,
+                # 'refresh_token': user_refresh_token
+            }
+            items['message'] = 'Signup successful'
+            items['code'] = 200
+
+
+            return items
+        except:
+            print("Error happened while Sign Up")
+            # if "NewUserID" in locals():
+            #     execute("""DELETE FROM users WHERE user_uid = '""" + NewUserID + """';""", 'post', conn)
+            # raise BadRequest('Request failed, please try again later.')
+        finally:
+            disconnect(conn)
+
+
+
+
+
+
 
 class Login(Resource):
     def post(self):
@@ -3046,6 +3410,9 @@ class getDriver(Resource):
 
 # Api Routes
 api.add_resource(SignUp, '/api/v2/SignUp')
+api.add_resource(UpdateSocialProfile, '/api/v2/UpdateSocialProfile')
+api.add_resource(UpdateDirectProfile, '/api/v2/UpdateDirectProfile')
+
 api.add_resource(AccountSalt, '/api/v2/AccountSalt')
 api.add_resource(Login, '/api/v2/Login')
 api.add_resource(AppleLogin, '/api/v2/AppleLogin', '/')
