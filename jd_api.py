@@ -743,11 +743,7 @@ class UpdateSocialProfile(Resource):
                                 UPDATE jd.drivers
                                 SET 
                                 driver_created_at = \'''' + (datetime.now()).strftime("%Y-%m-%d %H:%M:%S") + '''\',
-                                -- driver_first_name = \'''' + first_name + '''\',
-                                -- driver_last_name = \'''' + last_name + '''\',
                                 business_id = \'''' + business_uid + '''\',
-                                -- referral_source = \'''' + referral_source + '''\',
-                                -- driver_available_hours = \'''' + driver_hours + '''\',
                                 driver_street = \'''' + street + '''\',
                                 driver_unit = \'''' + unit + '''\',
                                 driver_city = \'''' + city + '''\',
@@ -756,7 +752,6 @@ class UpdateSocialProfile(Resource):
                                 driver_latitude = \'''' + latitude + '''\',
                                 driver_longitude = \'''' + longitude + '''\',
                                 driver_phone_num = \'''' + phone + '''\',
-                                -- driver_email = \'''' + email + '''\',
                                 driver_ssn = \'''' + ssn + '''\',
                                 driver_license = \'''' + license_num + '''\',
                                 driver_license_exp = \'''' + license_exp + '''\',
@@ -772,16 +767,6 @@ class UpdateSocialProfile(Resource):
                                 emergency_contact_relationship = \'''' + contact_relation + '''\',
                                 bank_account_info = \'''' + bank_acc_info + '''\',
                                 bank_routing_info = \'''' + bank_routing_info + '''\'
-                                -- password_salt = \'''' + salt + '''\',
-                                -- password_hashed = \'''' + password + '''\',
-                                -- password_algorithm = \'''' + algorithm + '''\',
-                                -- user_social_media = \'''' + user_social_signup + '''\',
-                                -- user_access_token = \'''' + user_access_token + '''\',
-                                -- social_timestamp = DATE_ADD(now() , INTERVAL 14 DAY),
-                                -- user_refresh_token = \'''' + user_refresh_token + '''\',
-                                -- mobile_access_token = \'''' + mobile_access_token + '''\',
-                                -- mobile_refresh_token = \'''' + mobile_refresh_token + '''\',
-                                -- social_id = \'''' + social_id + '''\'
                                 WHERE driver_uid = \'''' + driver_uid + '''\';
                                 ''' 
 
@@ -1014,7 +999,7 @@ class UpdateDirectProfile(Resource):
             #     if it['result'][0]['mobile_refresh_token'] != 'FALSE':
             #         mobile_refresh_token = it['result'][0]['mobile_refresh_token']
 
-
+            print("Before query")
             driver_insert_query =  '''
                                 UPDATE jd.drivers
                                 SET 
@@ -1022,8 +1007,6 @@ class UpdateDirectProfile(Resource):
                                 driver_first_name = \'''' + first_name + '''\',
                                 driver_last_name = \'''' + last_name + '''\',
                                 business_id = \'''' + business_uid + '''\',
-                                -- referral_source = \'''' + referral_source + '''\',
-                                -- driver_available_hours = \'''' + driver_hours + '''\',
                                 driver_street = \'''' + street + '''\',
                                 driver_unit = \'''' + unit + '''\',
                                 driver_city = \'''' + city + '''\',
@@ -1032,7 +1015,6 @@ class UpdateDirectProfile(Resource):
                                 driver_latitude = \'''' + latitude + '''\',
                                 driver_longitude = \'''' + longitude + '''\',
                                 driver_phone_num = \'''' + phone + '''\',
-                                -- driver_email = \'''' + email + '''\',
                                 driver_ssn = \'''' + ssn + '''\',
                                 driver_license = \'''' + license_num + '''\',
                                 driver_license_exp = \'''' + license_exp + '''\',
@@ -1048,19 +1030,9 @@ class UpdateDirectProfile(Resource):
                                 emergency_contact_relationship = \'''' + contact_relation + '''\',
                                 bank_account_info = \'''' + bank_acc_info + '''\',
                                 bank_routing_info = \'''' + bank_routing_info + '''\'
-                                -- password_salt = \'''' + salt + '''\',
-                                -- password_hashed = \'''' + password + '''\',
-                                -- password_algorithm = \'''' + algorithm + '''\',
-                                -- user_social_media = \'''' + user_social_signup + '''\',
-                                -- user_access_token = \'''' + user_access_token + '''\',
-                                -- social_timestamp = DATE_ADD(now() , INTERVAL 14 DAY),
-                                -- user_refresh_token = \'''' + user_refresh_token + '''\',
-                                -- mobile_access_token = \'''' + mobile_access_token + '''\',
-                                -- mobile_refresh_token = \'''' + mobile_refresh_token + '''\',
-                                -- social_id = \'''' + social_id + '''\'
                                 WHERE driver_uid = \'''' + driver_uid + '''\';
                                 ''' 
-
+            print("after query")
 
             # else:
 
